@@ -4,18 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Alamexa — Inversión P2P desde 50 USD</title>
+    <title>ALAMEXA — Plataforma P2P Ventas | Trueques | Inversion Segura | impulsada por TAMV ONLINE NETWORK</title>
     <meta
       name="description"
-      content="Alamexa es una plataforma DeFi para invertir desde 50 USD en proyectos seleccionados, con rewards APR + profit-sharing y capa social."
+      content="ALAMEXA es la plataforma DeFi de inversión P2P desde 50 USD, impulsada por tecnología TAMV ONLINE NETWORK, con rewards claros y comunidad inteligente."
     />
-    <meta name="author" content="Alamexa" />
+    <meta name="author" content="TAMV ONLINE NETWORK" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Alamexa — Plataforma DeFi P2P" />
+    <meta property="og:title" content="ALAMEXA — Plataforma DeFi P2P de TAMV ONLINE NETWORK" />
     <meta
       property="og:description"
-      content="Invierte pequeños montos en proyectos con trazabilidad on-chain y comunidad."
+      content="Invierte pequeños montos en proyectos con rewards on-chain, capa social y tecnología pionera de TAMV ONLINE NETWORK."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/alamexa-og.png" />
@@ -23,19 +23,267 @@
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@alamexa" />
-    <meta name="twitter:title" content="Alamexa — Inversión P2P DeFi" />
+    <meta name="twitter:site" content="@tamvonline" />
+    <meta name="twitter:title" content="ALAMEXA — DeFi P2P impulsada por TAMV ONLINE NETWORK" />
     <meta
       name="twitter:description"
-      content="DeFi para humanos: tickets mínimos, rewards claros, comunidad fuerte."
+      content="Plataforma de inversión P2P desde 50 USD con APR + profit-sharing, construida sobre tecnología TAMV ONLINE NETWORK."
     />
     <meta name="twitter:image" content="/alamexa-og.png" />
 
     <link rel="icon" href="/favicon.ico" />
   </head>
 
-  <body>
+  <body
+    class="min-h-screen bg-[#02040A] text-[#F6F3EC]"
+    style="
+      background-image:
+        radial-gradient(circle at 0% 0%, rgba(216,171,78,0.12) 0, transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(0,200,83,0.16) 0, transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(255,58,92,0.16) 0, transparent 55%);
+      background-color: #02040A;
+    "
+  >
     <div id="root"></div>
+
+    <!-- Shell estático inicial (opcional, luego React toma el control) -->
+    <div class="pointer-events-none fixed inset-0 bg-gradient-to-br from-[#02040A] via-[#050814] to-[#02040A] opacity-90"></div>
+
+    <div class="relative z-10 flex min-h-screen flex-col">
+      <!-- NAVBAR -->
+      <header class="border-b border-white/5 bg-black/40 backdrop-blur-xl">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-black/80 shadow-[0_0_24px_rgba(0,0,0,0.9)]"
+            >
+              <!-- Logo TAMV/ALAMEXA: black on black -->
+              <div class="h-5 w-5 rounded-md border border-[#1F2937] bg-[#02040A] shadow-inner shadow-black/80"></div>
+            </div>
+            <div class="leading-tight">
+              <div class="text-xs font-semibold tracking-[0.22em] text-[#D1BFA7] uppercase">
+                TAMV ONLINE NETWORK
+              </div>
+              <div class="text-sm font-semibold text-[#F6F3EC]">
+                Plataforma <span class="text-[#D8AB4E]">ALAMEXA</span>
+              </div>
+            </div>
+          </div>
+
+          <nav class="hidden items-center gap-6 text-xs font-medium text-[#A6A7AB] md:flex">
+            <a href="#como-funciona" class="hover:text-[#F0E6D8] transition-colors">Cómo funciona</a>
+            <a href="#seguridad" class="hover:text-[#F0E6D8] transition-colors">Seguridad</a>
+            <a href="#comunidad" class="hover:text-[#F0E6D8] transition-colors">Comunidad</a>
+            <a href="#tutoriales" class="hover:text-[#F0E6D8] transition-colors">Tutoriales</a>
+          </nav>
+
+          <div class="flex items-center gap-3">
+            <button
+              class="hidden rounded-full border border-white/10 px-4 py-1.5 text-xs font-medium text-[#A6A7AB] hover:border-[#D8AB4E]/60 hover:text-[#F0E6D8] md:inline-flex transition-all"
+            >
+              Entrar al panel
+            </button>
+            <button
+              class="rounded-full bg-gradient-to-r from-[#00843D] via-[#00C853] to-[#69F0AE] px-4 py-1.5 text-xs font-semibold text-[#02040A] shadow-[0_0_22px_rgba(0,200,83,0.55)] hover:shadow-[0_0_32px_rgba(0,200,83,0.85)] transition-all"
+            >
+              Invertir desde 50 USD
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- HERO -->
+      <main class="flex-1">
+        <section class="relative">
+          <div class="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-16 pt-10 md:flex-row md:items-center md:pb-20 md:pt-16">
+            <!-- Texto principal -->
+            <div class="md:w-1/2">
+              <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-[#D8AB4E]/30 bg-black/40 px-3 py-1">
+                <span class="h-1.5 w-1.5 rounded-full bg-[#00E676] shadow-[0_0_10px_rgba(0,230,118,0.9)]"></span>
+                <span class="text-[0.68rem] font-medium uppercase tracking-[0.26em] text-[#D1BFA7]">
+                  Impulsado por TAMV ONLINE NETWORK
+                </span>
+              </div>
+
+              <h1 class="text-3xl font-semibold leading-tight text-[#F6F3EC] md:text-4xl lg:text-5xl">
+                Inversión P2P desde
+                <span class="text-[#D8AB4E]">50&nbsp;USD</span><br />
+                con inteligencia <span class="text-[#A6A7AB]">ALAMEXA</span>.
+              </h1>
+
+              <p class="mt-4 max-w-xl text-sm text-[#A6A7AB]">
+                ALAMEXA es la puerta de entrada al ecosistema TAMV: una plataforma DeFi autónoma donde puedes invertir
+                tickets pequeños en proyectos reales, con rewards APR + profit-sharing y trazabilidad on‑chain.
+              </p>
+
+              <div class="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  class="rounded-full bg-gradient-to-r from-[#00843D] via-[#00C853] to-[#69F0AE] px-5 py-2.5 text-sm font-semibold text-[#02040A] shadow-[0_0_28px_rgba(0,200,83,0.65)] hover:shadow-[0_0_40px_rgba(0,200,83,0.9)] transition-all"
+                >
+                  Comenzar a invertir
+                </button>
+                <button
+                  class="rounded-full bg-gradient-to-r from-[#FF3A5C] via-[#FF5E9F] to-[#FFC371] px-5 py-2.5 text-sm font-semibold text-[#02040A] shadow-[0_0_30px_rgba(255,58,92,0.55)] hover:shadow-[0_0_45px_rgba(255,94,159,0.85)] transition-all"
+                >
+                  Ver tutorial interactivo
+                </button>
+              </div>
+
+              <div class="mt-5 grid max-w-md grid-cols-3 gap-3 text-[0.7rem] text-[#A6A7AB]">
+                <div>
+                  <div class="text-xs font-semibold text-[#F0E6D8]">Tickets accesibles</div>
+                  <div>Desde 50 USD, sin fricción.</div>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-[#F0E6D8]">Rewards claros</div>
+                  <div>APR + profit‑sharing on‑chain.</div>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-[#F0E6D8]">Tecnología TAMV</div>
+                  <div>Núcleo técnico pionero latino.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card/glass futurista -->
+            <div class="md:w-1/2">
+              <div
+                class="relative rounded-3xl border border-white/8 bg-white/5 bg-clip-padding p-4 backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.9)]"
+              >
+                <div class="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#D8AB4E]/20 blur-3xl"></div>
+                <div class="absolute -bottom-8 -left-10 h-24 w-24 rounded-full bg-[#00C853]/25 blur-3xl"></div>
+
+                <div class="relative">
+                  <div class="flex items-center justify-between text-xs text-[#A6A7AB]">
+                    <span>ALAMEXA · Panel de inversor</span>
+                    <span class="rounded-full bg-black/60 px-2 py-0.5 text-[0.65rem] text-[#D1BFA7]">
+                      Modo experto TAMV
+                    </span>
+                  </div>
+
+                  <div class="mt-4 grid grid-cols-3 gap-3 text-xs">
+                    <div class="rounded-2xl border border-white/10 bg-black/60 p-3 shadow-inner shadow-black/80">
+                      <div class="text-[0.65rem] text-[#A6A7AB]">Portafolio</div>
+                      <div class="mt-1 text-sm font-semibold text-[#F6F3EC]">$12,450.32</div>
+                      <div class="mt-1 text-[0.65rem] text-emerald-400">+12.8% YTD</div>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-black/60 p-3 shadow-inner shadow-black/80">
+                      <div class="text-[0.65rem] text-[#A6A7AB]">Rewards activos</div>
+                      <div class="mt-1 text-sm font-semibold text-[#F6F3EC]">$842.17</div>
+                      <div class="mt-1 text-[0.65rem] text-[#A6A7AB]">APR dinámico</div>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-black/60 p-3 shadow-inner shadow-black/80">
+                      <div class="text-[0.65rem] text-[#A6A7AB]">Proyectos TAMV</div>
+                      <div class="mt-1 text-sm font-semibold text-[#F6F3EC]">9 activos</div>
+                      <div class="mt-1 text-[0.65rem] text-[#D8AB4E]">Curados</div>
+                    </div>
+                  </div>
+
+                  <div id="como-funciona" class="mt-5 text-xs text-[#A6A7AB]">
+                    ALAMEXA traduce el lenguaje técnico de DeFi y TAMV ONLINE NETWORK en flujos entendibles:
+                    eliges el proyecto, defines tu ticket, y el motor se encarga de pools, APR, profit‑sharing y
+                    trazabilidad.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tutoriales / iconos black on black -->
+        <section id="tutoriales" class="border-t border-white/5 bg-black/40 backdrop-blur-xl">
+          <div class="mx-auto max-w-6xl px-4 py-10">
+            <div class="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-sm font-semibold tracking-[0.22em] text-[#D1BFA7] uppercase">
+                  Tutoriales guiados
+                </h2>
+                <p class="mt-1 text-xs text-[#A6A7AB]">
+                  Aprende a invertir, leer rewards y navegar la capa social en minutos, no en horas.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-3">
+              <!-- Card 1 -->
+              <article
+                class="group rounded-2xl border border-white/6 bg-[#050814]/80 p-4 shadow-[0_0_26px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all hover:border-[#D8AB4E]/60 hover:shadow-[0_0_32px_rgba(216,171,78,0.5)]"
+              >
+                <div
+                  class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/70 shadow-inner shadow-black/80"
+                >
+                  <div class="h-5 w-5 rounded-md border border-[#111827] bg-[#02040A] shadow-inner shadow-black/80"></div>
+                </div>
+                <h3 class="text-xs font-semibold text-[#F0E6D8]">Paso 1 · Crear tu perfil</h3>
+                <p class="mt-1 text-[0.7rem] text-[#A6A7AB]">
+                  Regístrate, verifica tu identidad y define tu perfil de riesgo para que ALAMEXA pueda sugerirte
+                  oportunidades.
+                </p>
+              </article>
+
+              <!-- Card 2 -->
+              <article
+                class="group rounded-2xl border border-white/6 bg-[#050814]/80 p-4 shadow-[0_0_26px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all hover:border-[#D8AB4E]/60 hover:shadow-[0_0_32px_rgba(216,171,78,0.5)]"
+              >
+                <div
+                  class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/70 shadow-inner shadow-black/80"
+                >
+                  <div class="h-5 w-5 rounded-md border border-[#111827] bg-[#02040A] shadow-inner shadow-black/80"></div>
+                </div>
+                <h3 class="text-xs font-semibold text-[#F0E6D8]">Paso 2 · Invertir desde 50 USD</h3>
+                <p class="mt-1 text-[0.7rem] text-[#A6A7AB]">
+                  Elige un proyecto TAMV, define tu ticket inicial y deja que el motor de pools gestione el resto,
+                  sin complicaciones técnicas.
+                </p>
+              </article>
+
+              <!-- Card 3 -->
+              <article
+                class="group rounded-2xl border border-white/6 bg-[#050814]/80 p-4 shadow-[0_0_26px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-all hover:border-[#D8AB4E]/60 hover:shadow-[0_0_32px_rgba(216,171,78,0.5)]"
+              >
+                <div
+                  class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/70 shadow-inner shadow-black/80"
+                >
+                  <div class="h-5 w-5 rounded-md border border-[#111827] bg-[#02040A] shadow-inner shadow-black/80"></div>
+                </div>
+                <h3 class="text-xs font-semibold text-[#F0E6D8]">Paso 3 · Reclamar rewards</h3>
+                <p class="mt-1 text-[0.7rem] text-[#A6A7AB]">
+                  Consulta tus APR, profit‑sharing y bonos, y reclama tus rewards con uno o dos clics, todo con
+                  transparencia on‑chain.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- FOOTER TAMV -->
+      <footer class="border-t border-white/5 bg-black/80 backdrop-blur-xl">
+        <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 text-[0.7rem] text-[#A6A7AB] md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-col gap-1">
+            <span class="text-xs font-semibold text-[#F0E6D8]">
+              Somos TAMV ONLINE NETWORK.
+            </span>
+            <span>
+              Plataforma <span class="text-[#D8AB4E]">ALAMEXA</span>. Desarrollada con tecnología
+              <span class="text-[#D1BFA7]">TAMV ONLINE NETWORK</span> todos los derechos reservados. Orgullosamente
+              Realmontenses.
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-3 text-[0.65rem] text-[#6B7280]">
+            <span>© <span id="year">2025</span> ALAMEXA · TAMV ONLINE NETWORK</span>
+            <span>DeFi · P2P · Comunidad</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // Set year dinámico básico
+      document.getElementById("year").textContent = new Date().getFullYear().toString();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
