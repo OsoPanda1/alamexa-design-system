@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Catalog from "./pages/Catalog";
 import Auth from "./pages/Auth";
@@ -13,7 +14,14 @@ import Account from "./pages/Account";
 import Memberships from "./pages/Memberships";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -24,12 +32,40 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/catalog" element={<Catalog />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/memberships" element={<Memberships />} />
+              {/* Public Routes */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/catalog" element={
+                <ProtectedRoute>
+                  <Catalog />
+                </ProtectedRoute>
+              } />
+              <Route path="/memberships" element={
+                <ProtectedRoute>
+                  <Memberships />
+                </ProtectedRoute>
+              } />
+              <Route path="/auth" element={
+                <ProtectedRoute>
+                  <Auth />
+                </ProtectedRoute>
+              } />
+              
+              {/* Protected Routes (require auth) */}
+              <Route path="/cart" element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              } />
+              <Route path="/account" element={
+                <ProtectedRoute>
+                  <Account />
+                </ProtectedRoute>
+              } />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
