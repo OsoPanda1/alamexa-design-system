@@ -122,6 +122,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          read_at: string | null
+          reference_id: string | null
+          reference_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          read_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          read_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
@@ -365,6 +404,75 @@ export type Database = {
           wallet_balance?: number | null
         }
         Relationships: []
+      }
+      trade_proposals: {
+        Row: {
+          cash_difference: number | null
+          cash_from: string | null
+          completed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          message: string | null
+          proposer_id: string
+          proposer_product_id: string | null
+          receiver_id: string
+          receiver_product_id: string | null
+          responded_at: string | null
+          response_message: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cash_difference?: number | null
+          cash_from?: string | null
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          proposer_id: string
+          proposer_product_id?: string | null
+          receiver_id: string
+          receiver_product_id?: string | null
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cash_difference?: number | null
+          cash_from?: string | null
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          proposer_id?: string
+          proposer_product_id?: string | null
+          receiver_id?: string
+          receiver_product_id?: string | null
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_proposals_proposer_product_id_fkey"
+            columns: ["proposer_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_proposals_receiver_product_id_fkey"
+            columns: ["receiver_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
