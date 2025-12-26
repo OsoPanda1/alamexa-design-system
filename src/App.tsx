@@ -12,6 +12,8 @@ import Auth from "./pages/Auth";
 import Cart from "./pages/Cart";
 import Account from "./pages/Account";
 import Memberships from "./pages/Memberships";
+import Dashboard from "./pages/Dashboard";
+import CreateProduct from "./pages/CreateProduct";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -63,6 +65,16 @@ const App = () => (
               <Route path="/account" element={
                 <ProtectedRoute>
                   <Account />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/products/new" element={
+                <ProtectedRoute>
+                  <CreateProduct />
                 </ProtectedRoute>
               } />
               
