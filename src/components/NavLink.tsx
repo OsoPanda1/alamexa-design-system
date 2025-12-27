@@ -1,28 +1,54 @@
-import { NavLink as RouterNavLink, NavLinkProps } from "react-router-dom";
-import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
+// Link principal del header
+<NavLink
+  to="/catalog"
+  layout="inline"
+  variant="default"
+  size="sm"
+  meta={{
+    domain: "catalog",
+    order: 1,
+    groupKey: "main",
+    visibilityScope: "public",
+    tags: ["top-nav", "discover"],
+  }}
+>
+  Catálogo
+</NavLink>
 
-interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
-  className?: string;
-  activeClassName?: string;
-  pendingClassName?: string;
-}
+// Tab en dashboard de usuario
+<NavLink
+  to="/account/trades"
+  layout="tab"
+  variant="primary"
+  size="sm"
+  activeClassName="font-bold"
+  meta={{
+    domain: "trade",
+    order: 2,
+    groupKey: "account-tabs",
+    visibilityScope: "authenticated",
+  }}
+>
+  Mis trueques
+</NavLink>
 
-const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
-  ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
-    return (
-      <RouterNavLink
-        ref={ref}
-        to={to}
-        className={({ isActive, isPending }) =>
-          cn(className, isActive && activeClassName, isPending && pendingClassName)
-        }
-        {...props}
-      />
-    );
-  },
-);
-
-NavLink.displayName = "NavLink";
-
-export { NavLink };
+// Link administrativo crítico
+<NavLink
+  to="/admin/billing"
+  layout="pill"
+  variant="danger"
+  size="sm"
+  requiredRole="admin"
+  hiddenIfUnauthorized
+  leadingIcon={<IconAlertTriangle className="h-4 w-4" />}
+  meta={{
+    domain: "admin",
+    order: 99,
+    groupKey: "admin",
+    critical: true,
+    visibilityScope: "internal",
+    tags: ["billing", "sensitive"],
+  }}
+>
+  Billing & riesgos
+</NavLink>
