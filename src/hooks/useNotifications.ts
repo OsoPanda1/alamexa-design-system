@@ -1,125 +1,343 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+export type NotificationSeverity = "info" | "success" | "warning" | "error";
+export type NotificationChannel = "system" | "trade" | "billing" | "security" | "community";
+
+export type NotificationType =
+  | "TRADE_PROPOSED"
+  | "TRADE_ACCEPTED"
+  | "TRADE_COMPLETED"
+  | "TRADE_DISPUTED"
+  | "NEW_MESSAGE"
+  | "PLAN_UPGRADED"
+  | "PAYMENT_FAILED"
+  | "SECURITY_ALERT"
+  | "SYSTEM";
+
+export interface NotificationMetadata {
+  severity?: NotificationSeverity;
+  channel?: NotificationChannel;
+  /**
+   * Prioridad relativa para ordenamiento o badges en UI.
+   * 1 = más alta, 5 = más baja.
+   */
+  priority?: 1 | 2 | 3 | 4 | 5;
+  /**
+   * Ruta sugerida para navegar cuando el usuario “abre” la notificación.
+   */
+  targetPath?: string;
+  /**
+   * Cualquier payload extra (ej. IDs adicionales, flags).
+   */
+  payload?: Record<string, unknown>;
+}
 
 export interface Notification {
   id: string;
   created_at: string;
   user_id: string;
-  type: string;
+  type: NotificationType | string;
   title: string;
   message: string;
   reference_id: string | null;
   reference_type: string | null;
   read: boolean;
   read_at: string | null;
+  // JSONB en Postgres
+  metadata: NotificationMetadata | null;
 }
 
-export function useNotifications() {
+interface UseNotificationsOptions {
+  limit?: number;
+  /**
+   * Si true, intenta re-suscribirse automaticamente al canal realtime.
+   */
+  autoResubscribe?: boolean;
+  /**
+   * Filtro inicial por tipo o canal.
+   */
+  channelFilter?: NotificationChannel | "all";
+}
+
+interface UseNotificationsResult {
+  notifications: Notification[];
+  loading: boolean;
+  error: string | null;
+  unreadCount: number;
+  hasMore: boolean;
+  isFetchingMore: boolean;
+
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  fetchMore: () => Promise<void>;
+  refetch: () => Promise<void>;
+
+  // utilidades de filtrado en memoria
+  getByChannel: (channel: NotificationChannel) => Notification[];
+  getByType: (type: NotificationType) => Notification[];
+}
+
+export function useNotifications(
+  options: UseNotificationsOptions = {},
+): UseNotificationsResult {
   const { user } = useAuth();
+
+  const {
+    limit = 50,
+    autoResubscribe = true,
+    channelFilter = "all",
+  } = options;
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchNotifications = async () => {
-    if (!user) return;
+  // Para evitar condiciones de carrera con múltiples llamadas
+  const isInitialFetchDone = useRef(false);
+  const realtimeChannel = useRef<ReturnType<typeof supabase.channel> | null>(
+    null,
+  );
+
+  const baseQuery = useCallback(
+    () =>
+      supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", user?.id ?? "")
+        .order("created_at", { ascending: false }),
+    [user?.id],
+  );
+
+  const fetchNotifications = useCallback(
+    async (opts?: { reset?: boolean }) => {
+      if (!user) return;
+
+      const shouldReset = opts?.reset ?? false;
+
+      if (shouldReset) {
+        setLoading(true);
+        setError(null);
+      }
+
+      try {
+        const query = baseQuery().limit(limit);
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        const list = (data ?? []) as Notification[];
+
+        setNotifications(list);
+        setHasMore(list.length === limit);
+        isInitialFetchDone.current = true;
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+        setError("No se pudieron obtener las notificaciones.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, baseQuery, limit],
+  );
+
+  const fetchMore = useCallback(async () => {
+    if (!user || !hasMore || isFetchingMore || notifications.length === 0) {
+      return;
+    }
+
+    setIsFetchingMore(true);
+    setError(null);
 
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const last = notifications[notifications.length - 1];
+
+      const query = baseQuery()
+        .lt("created_at", last.created_at)
+        .limit(limit);
+
+      const { data, error } = await query;
 
       if (error) throw error;
-      setNotifications(data || []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+
+      const more = (data ?? []) as Notification[];
+
+      setNotifications((prev) => [...prev, ...more]);
+      setHasMore(more.length === limit);
+    } catch (err) {
+      console.error("Error fetching more notifications:", err);
+      setError("No se pudieron cargar más notificaciones.");
     } finally {
-      setLoading(false);
+      setIsFetchingMore(false);
     }
-  };
+  }, [user, hasMore, isFetchingMore, notifications, baseQuery, limit]);
+
+  // Suscripción realtime
+  const setupRealtime = useCallback(() => {
+    if (!user) return;
+
+    // Limpia canal previo si existe
+    if (realtimeChannel.current) {
+      supabase.removeChannel(realtimeChannel.current);
+      realtimeChannel.current = null;
+    }
+
+    const channel = supabase
+      .channel(`notifications:user:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newNotification = payload.new as Notification;
+
+          setNotifications((prev) => {
+            // evita duplicados
+            if (prev.some((n) => n.id === newNotification.id)) return prev;
+            return [newNotification, ...prev];
+          });
+        },
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          // opcional: log / métricas
+        }
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn("Supabase notifications channel issue:", status);
+          if (autoResubscribe) {
+            // simple backoff lineal
+            setTimeout(setupRealtime, 2000);
+          }
+        }
+      });
+
+    realtimeChannel.current = channel;
+  }, [user, autoResubscribe]);
 
   useEffect(() => {
-    fetchNotifications();
-
-    // Subscribe to realtime notifications
-    if (user) {
-      const channel = supabase
-        .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            setNotifications((prev) => [payload.new as Notification, ...prev]);
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+    if (!user) {
+      setNotifications([]);
+      setLoading(false);
+      return;
     }
-  }, [user]);
 
-  const markAsRead = async (notificationId: string) => {
+    fetchNotifications({ reset: true });
+    setupRealtime();
+
+    return () => {
+      if (realtimeChannel.current) {
+        supabase.removeChannel(realtimeChannel.current);
+        realtimeChannel.current = null;
+      }
+    };
+  }, [user, fetchNotifications, setupRealtime]);
+
+  const markAsRead = useCallback(async (notificationId: string) => {
     try {
-      await supabase
-        .from('notifications')
-        .update({ read: true, read_at: new Date().toISOString() })
-        .eq('id', notificationId);
+      const read_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true, read_at })
+        .eq("id", notificationId);
+
+      if (error) throw error;
 
       setNotifications((prev) =>
         prev.map((n) =>
-          n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n
-        )
+          n.id === notificationId ? { ...n, read: true, read_at } : n,
+        ),
       );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+      setError("No se pudo marcar la notificación como leída.");
     }
-  };
+  }, []);
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     if (!user) return;
 
     try {
-      await supabase
-        .from('notifications')
-        .update({ read: true, read_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .eq('read', false);
+      const read_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true, read_at })
+        .eq("user_id", user.id)
+        .eq("read", false);
+
+      if (error) throw error;
 
       setNotifications((prev) =>
-        prev.map((n) => ({ ...n, read: true, read_at: new Date().toISOString() }))
+        prev.map((n) =>
+          n.read ? n : { ...n, read: true, read_at },
+        ),
       );
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+      setError("No se pudieron marcar todas las notificaciones como leídas.");
     }
-  };
+  }, [user]);
 
-  const deleteNotification = async (notificationId: string) => {
+  const deleteNotification = useCallback(async (notificationId: string) => {
     try {
-      await supabase.from('notifications').delete().eq('id', notificationId);
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("id", notificationId);
+
+      if (error) throw error;
+
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-    } catch (error) {
-      console.error('Error deleting notification:', error);
+    } catch (err) {
+      console.error("Error deleting notification:", err);
+      setError("No se pudo eliminar la notificación.");
     }
-  };
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  // Filtros en memoria
+  const getByChannel = useCallback(
+    (channel: NotificationChannel) =>
+      notifications.filter((n) => n.metadata?.channel === channel),
+    [notifications],
+  );
+
+  const getByType = useCallback(
+    (type: NotificationType) => notifications.filter((n) => n.type === type),
+    [notifications],
+  );
+
+  // Filtro global por canal (opción en options)
+  const filteredNotifications =
+    channelFilter === "all"
+      ? notifications
+      : notifications.filter(
+          (n) => n.metadata?.channel === channelFilter,
+        );
+
   return {
-    notifications,
+    notifications: filteredNotifications,
     loading,
+    error,
     unreadCount,
+    hasMore,
+    isFetchingMore,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    refetch: fetchNotifications,
+    fetchMore,
+    refetch: () => fetchNotifications({ reset: true }),
+    getByChannel,
+    getByType,
   };
 }
