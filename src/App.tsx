@@ -14,6 +14,7 @@ import Account from "./pages/Account";
 import Memberships from "./pages/Memberships";
 import Dashboard from "./pages/Dashboard";
 import CreateProduct from "./pages/CreateProduct";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -75,6 +76,11 @@ const App = () => (
               <Route path="/products/new" element={
                 <ProtectedRoute>
                   <CreateProduct />
+                </ProtectedRoute>
+              } />
+              <Route path="/about" element={
+                <ProtectedRoute>
+                  <About />
                 </ProtectedRoute>
               } />
               
