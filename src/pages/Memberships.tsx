@@ -71,7 +71,7 @@ export default function Memberships() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container-alamexa py-12">
+      <main className="container-alamexa pt-24 pb-16">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12">
           <Badge className="bg-success/10 text-success border-success/20 mb-4">
@@ -157,7 +157,9 @@ export default function Memberships() {
                       className="w-full"
                       onClick={() => {
                         if (!user) {
-                          window.location.href = "/auth";
+                          // Keep SPA navigation (no full reload)
+                          window.history.pushState({}, "", "/auth");
+                          window.dispatchEvent(new PopStateEvent("popstate"));
                         } else {
                           // TODO: Implement payment flow
                         }

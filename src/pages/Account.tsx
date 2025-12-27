@@ -167,7 +167,7 @@ export default function Account() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container-alamexa py-8">
+      <main className="container-alamexa pt-24 pb-16">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
           <Link to="/" className="hover:text-foreground">Inicio</Link>
