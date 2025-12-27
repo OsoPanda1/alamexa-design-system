@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -6,25 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  User, 
-  CreditCard, 
-  Package, 
-  Wallet, 
-  Shield, 
+import {
+  User,
+  CreditCard,
+  Package,
+  Wallet,
+  Shield,
   Star,
   Edit,
   Plus,
   Trash2,
   Crown,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -43,18 +54,32 @@ interface Order {
   created_at: string;
 }
 
+interface ProfileFormData {
+  full_name: string;
+  username: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  bio: string;
+}
+
 export default function Account() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut, updateProfile } = useAuth();
   const { toast } = useToast();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  
-  // Form state
-  const [formData, setFormData] = useState({
+
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+
+  const [formData, setFormData] = useState<ProfileFormData>({
     full_name: "",
     username: "",
     phone: "",
@@ -65,12 +90,14 @@ export default function Account() {
     bio: "",
   });
 
+  // Redirección si no hay sesión
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth");
+      navigate("/auth", { replace: true });
     }
   }, [user, loading, navigate]);
 
+  // Inicializar formulario con perfil
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -86,74 +113,160 @@ export default function Account() {
     }
   }, [profile]);
 
+  const fetchPaymentMethods = useCallback(async () => {
+    if (!user) return;
+    try {
+      setIsLoadingPayments(true);
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setPaymentMethods(data ?? []);
+    } catch (err) {
+      console.error("Error fetching payment methods:", err);
+      toast({
+        title: "Error al cargar métodos de pago",
+        description: "Intenta de nuevo más tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingPayments(false);
+    }
+  }, [user, toast]);
+
+  const fetchOrders = useCallback(async () => {
+    if (!user) return;
+    try {
+      setIsLoadingOrders(true);
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, total, status, created_at")
+        .eq("buyer_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setOrders(data ?? []);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      toast({
+        title: "Error al cargar pedidos",
+        description: "No pudimos obtener tu historial de compras.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [user, toast]);
+
   useEffect(() => {
     if (user) {
       fetchPaymentMethods();
       fetchOrders();
     }
-  }, [user]);
+  }, [user, fetchPaymentMethods, fetchOrders]);
 
-  const fetchPaymentMethods = async () => {
-    const { data } = await supabase
-      .from("payment_methods")
-      .select("*")
-      .eq("user_id", user?.id);
-    if (data) setPaymentMethods(data);
-  };
-
-  const fetchOrders = async () => {
-    const { data } = await supabase
-      .from("orders")
-      .select("id, total, status, created_at")
-      .eq("buyer_id", user?.id)
-      .order("created_at", { ascending: false })
-      .limit(5);
-    if (data) setOrders(data);
-  };
+  const handleChange =
+    (field: keyof ProfileFormData) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
   const handleSave = async () => {
-    setIsSaving(true);
-    const { error } = await updateProfile(formData);
-    setIsSaving(false);
-    if (!error) {
+    if (!profile) return;
+    try {
+      setIsSaving(true);
+      const { error } = await updateProfile(formData);
+      if (error) {
+        toast({
+          title: "Error al actualizar perfil",
+          description: error.message ?? "Intenta nuevamente.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Perfil actualizado",
+        description: "Tus cambios se guardaron correctamente.",
+      });
       setIsEditing(false);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      toast({
+        title: "Error inesperado",
+        description: "No se pudo guardar tu perfil.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleDeletePaymentMethod = async (id: string) => {
-    const { error } = await supabase
-      .from("payment_methods")
-      .delete()
-      .eq("id", id);
-    if (!error) {
-      setPaymentMethods(paymentMethods.filter((pm) => pm.id !== id));
+    try {
+      const { error } = await supabase
+        .from("payment_methods")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+
+      setPaymentMethods((prev) => prev.filter((pm) => pm.id !== id));
       toast({ title: "Método de pago eliminado" });
+    } catch (err) {
+      console.error("Error deleting payment method:", err);
+      toast({
+        title: "Error al eliminar método de pago",
+        description: "Intenta nuevamente.",
+        variant: "destructive",
+      });
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
       pending: "secondary",
       confirmed: "default",
       shipped: "default",
       delivered: "default",
       cancelled: "destructive",
     };
-    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
+    return (
+      <Badge variant={variants[status] || "outline"}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
   };
 
   const getMembershipBadge = (tier: string) => {
-    const config: Record<string, { label: string; className: string }> = {
-      free: { label: "Gratis", className: "bg-muted text-muted-foreground" },
-      basic: { label: "Básico", className: "bg-accent text-accent-foreground" },
-      pro: { label: "Pro", className: "bg-success text-success-foreground" },
+    const config: Record<
+      string,
+      { label: string; className: string }
+    > = {
+      free: {
+        label: "Gratis",
+        className: "bg-muted text-muted-foreground",
+      },
+      basic: {
+        label: "Básico",
+        className: "bg-accent text-accent-foreground",
+      },
+      pro: {
+        label: "Pro",
+        className: "bg-success text-success-foreground",
+      },
     };
     return config[tier] || config.free;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-accent" />
       </div>
     );
@@ -162,42 +275,58 @@ export default function Account() {
   if (!user || !profile) return null;
 
   const membershipConfig = getMembershipBadge(profile.membership_tier);
+  const formattedWalletBalance = useMemo(
+    () =>
+      typeof profile.wallet_balance === "number"
+        ? profile.wallet_balance.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        : "0.00",
+    [profile.wallet_balance],
+  );
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container-alamexa pt-24 pb-16">
+      <main className="container-alamexa pb-16 pt-24">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
-          <Link to="/" className="hover:text-foreground">Inicio</Link>
+        <nav
+          className="mb-8 flex items-center gap-2 text-sm text-muted-foreground"
+          aria-label="Breadcrumb"
+        >
+          <Link to="/" className="hover:text-foreground">
+            Inicio
+          </Link>
           <span>/</span>
           <span className="text-foreground">Mi Cuenta</span>
         </nav>
 
         {/* Profile Header */}
-        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-8">
+        <section className="mb-8 flex flex-col items-start gap-6 md:flex-row md:items-center">
           <Avatar className="h-24 w-24">
             <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback className="text-2xl bg-muted">
-              {profile.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase()}
+            <AvatarFallback className="bg-muted text-2xl">
+              {profile.full_name?.charAt(0) ||
+                user.email?.charAt(0)?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="mb-2 flex items-center gap-3">
               <h1 className="text-2xl font-bold text-foreground">
                 {profile.full_name || "Usuario"}
               </h1>
               <Badge className={membershipConfig.className}>
-                <Crown className="h-3 w-3 mr-1" />
+                <Crown className="mr-1 h-3 w-3" />
                 {membershipConfig.label}
               </Badge>
             </div>
             <p className="text-muted-foreground">{user.email}</p>
-            <div className="flex items-center gap-4 mt-2">
+            <div className="mt-2 flex flex-wrap items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                <Star className="h-4 w-4 inline mr-1 text-accent" />
+                <Star className="mr-1 inline h-4 w-4 text-accent" />
                 {profile.reputation_score} reputación
               </span>
               <span className="text-sm text-muted-foreground">
@@ -206,36 +335,40 @@ export default function Account() {
             </div>
           </div>
 
-          <Button variant="outline" onClick={() => signOut()}>
-            Cerrar Sesión
+          <Button
+            variant="outline"
+            onClick={signOut}
+            className="w-full md:w-auto"
+          >
+            Cerrar sesión
           </Button>
-        </div>
+        </section>
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="bg-muted/50">
             <TabsTrigger value="profile">
-              <User className="h-4 w-4 mr-2" />
+              <User className="mr-2 h-4 w-4" />
               Perfil
             </TabsTrigger>
             <TabsTrigger value="wallet">
-              <Wallet className="h-4 w-4 mr-2" />
+              <Wallet className="mr-2 h-4 w-4" />
               Wallet
             </TabsTrigger>
             <TabsTrigger value="payments">
-              <CreditCard className="h-4 w-4 mr-2" />
+              <CreditCard className="mr-2 h-4 w-4" />
               Pagos
             </TabsTrigger>
             <TabsTrigger value="orders">
-              <Package className="h-4 w-4 mr-2" />
+              <Package className="mr-2 h-4 w-4" />
               Pedidos
             </TabsTrigger>
             <TabsTrigger value="membership">
-              <Crown className="h-4 w-4 mr-2" />
+              <Crown className="mr-2 h-4 w-4" />
               Membresía
             </TabsTrigger>
             <TabsTrigger value="security">
-              <Shield className="h-4 w-4 mr-2" />
+              <Shield className="mr-2 h-4 w-4" />
               Seguridad
             </TabsTrigger>
           </TabsList>
@@ -243,83 +376,100 @@ export default function Account() {
           {/* Profile Tab */}
           <TabsContent value="profile">
             <Card className="border-border/30 bg-card/50">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Información Personal</CardTitle>
-                  <CardDescription>Gestiona tu información de perfil</CardDescription>
+                  <CardTitle>Información personal</CardTitle>
+                  <CardDescription>
+                    Gestiona tu información de perfil
+                  </CardDescription>
                 </div>
                 <Button
                   variant={isEditing ? "ghost" : "outline"}
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={() => setIsEditing((prev) => !prev)}
                 >
-                  {isEditing ? "Cancelar" : <><Edit className="h-4 w-4 mr-2" /> Editar</>}
+                  {isEditing ? (
+                    "Cancelar"
+                  ) : (
+                    <>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Editar
+                    </>
+                  )}
                 </Button>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Nombre completo</Label>
+                    <Label htmlFor="full_name">Nombre completo</Label>
                     <Input
+                      id="full_name"
                       value={formData.full_name}
-                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      onChange={handleChange("full_name")}
                       disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Username</Label>
+                    <Label htmlFor="username">Username</Label>
                     <Input
+                      id="username"
                       value={formData.username}
-                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      onChange={handleChange("username")}
                       disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Teléfono</Label>
+                    <Label htmlFor="phone">Teléfono</Label>
                     <Input
+                      id="phone"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={handleChange("phone")}
                       disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Dirección</Label>
+                    <Label htmlFor="address">Dirección</Label>
                     <Input
+                      id="address"
                       value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      onChange={handleChange("address")}
                       disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Ciudad</Label>
+                    <Label htmlFor="city">Ciudad</Label>
                     <Input
+                      id="city"
                       value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      onChange={handleChange("city")}
                       disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Estado</Label>
+                    <Label htmlFor="state">Estado</Label>
                     <Input
+                      id="state"
                       value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      onChange={handleChange("state")}
                       disabled={!isEditing}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Código Postal</Label>
+                    <Label htmlFor="postal_code">Código Postal</Label>
                     <Input
+                      id="postal_code"
                       value={formData.postal_code}
-                      onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                      onChange={handleChange("postal_code")}
                       disabled={!isEditing}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label>Bio</Label>
+                  <Label htmlFor="bio">Bio</Label>
                   <Textarea
+                    id="bio"
                     value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    onChange={handleChange("bio")}
                     disabled={!isEditing}
                     rows={3}
                     placeholder="Cuéntanos sobre ti..."
@@ -329,9 +479,12 @@ export default function Account() {
                 {isEditing && (
                   <Button onClick={handleSave} disabled={isSaving}>
                     {isSaving ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Guardando...</>
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Guardando...
+                      </>
                     ) : (
-                      "Guardar Cambios"
+                      "Guardar cambios"
                     )}
                   </Button>
                 )}
@@ -343,17 +496,20 @@ export default function Account() {
           <TabsContent value="wallet">
             <Card className="border-border/30 bg-card/50">
               <CardHeader>
-                <CardTitle>Tu Wallet</CardTitle>
+                <CardTitle>Tu wallet</CardTitle>
                 <CardDescription>Balance y transacciones</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <Wallet className="h-12 w-12 mx-auto text-accent mb-4" />
-                  <p className="text-4xl font-bold text-foreground mb-2">
-                    ${profile.wallet_balance?.toLocaleString() || "0.00"}
+                <div className="py-8 text-center">
+                  <Wallet
+                    className="mx-auto mb-4 h-12 w-12 text-accent"
+                    aria-hidden="true"
+                  />
+                  <p className="mb-2 text-4xl font-bold text-foreground">
+                    ${formattedWalletBalance}
                   </p>
                   <p className="text-muted-foreground">Balance disponible</p>
-                  <div className="flex gap-3 justify-center mt-6">
+                  <div className="mt-6 flex justify-center gap-3">
                     <Button variant="success">Depositar</Button>
                     <Button variant="outline">Retirar</Button>
                   </div>
@@ -365,37 +521,57 @@ export default function Account() {
           {/* Payments Tab */}
           <TabsContent value="payments">
             <Card className="border-border/30 bg-card/50">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Métodos de Pago</CardTitle>
-                  <CardDescription>Gestiona tus tarjetas y cuentas</CardDescription>
+                  <CardTitle>Métodos de pago</CardTitle>
+                  <CardDescription>
+                    Gestiona tus tarjetas y cuentas
+                  </CardDescription>
                 </div>
                 <Button variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Agregar
                 </Button>
               </CardHeader>
               <CardContent>
-                {paymentMethods.length === 0 ? (
-                  <div className="text-center py-8">
-                    <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No tienes métodos de pago guardados</p>
+                {isLoadingPayments ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-accent" />
+                  </div>
+                ) : paymentMethods.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <CreditCard
+                      className="mx-auto mb-4 h-12 w-12 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <p className="text-muted-foreground">
+                      No tienes métodos de pago guardados.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {paymentMethods.map((method) => (
                       <div
                         key={method.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-muted/30"
+                        className="flex items-center justify-between rounded-lg bg-muted/30 p-4"
                       >
                         <div className="flex items-center gap-3">
-                          <CreditCard className="h-5 w-5 text-accent" />
+                          <CreditCard
+                            className="h-5 w-5 text-accent"
+                            aria-hidden="true"
+                          />
                           <div>
                             <p className="font-medium text-foreground">
-                              {method.brand || method.type} •••• {method.last_four}
+                              {method.brand || method.type} ••••{" "}
+                              {method.last_four}
                             </p>
                             {method.is_default && (
-                              <Badge variant="secondary" className="text-xs">Predeterminado</Badge>
+                              <Badge
+                                variant="secondary"
+                                className="mt-1 text-xs"
+                              >
+                                Predeterminado
+                              </Badge>
                             )}
                           </div>
                         </div>
@@ -403,7 +579,10 @@ export default function Account() {
                           variant="ghost"
                           size="icon"
                           className="text-destructive"
-                          onClick={() => handleDeletePaymentMethod(method.id)}
+                          onClick={() =>
+                            handleDeletePaymentMethod(method.id)
+                          }
+                          aria-label="Eliminar método de pago"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -419,16 +598,27 @@ export default function Account() {
           <TabsContent value="orders">
             <Card className="border-border/30 bg-card/50">
               <CardHeader>
-                <CardTitle>Mis Pedidos</CardTitle>
+                <CardTitle>Mis pedidos</CardTitle>
                 <CardDescription>Historial de compras</CardDescription>
               </CardHeader>
               <CardContent>
-                {orders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No tienes pedidos aún</p>
+                {isLoadingOrders ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-accent" />
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Package
+                      className="mx-auto mb-4 h-12 w-12 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <p className="text-muted-foreground">
+                      No tienes pedidos aún.
+                    </p>
                     <Link to="/catalog">
-                      <Button variant="outline" className="mt-4">Explorar Catálogo</Button>
+                      <Button variant="outline" className="mt-4">
+                        Explorar catálogo
+                      </Button>
                     </Link>
                   </div>
                 ) : (
@@ -436,14 +626,16 @@ export default function Account() {
                     {orders.map((order) => (
                       <div
                         key={order.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-muted/30"
+                        className="flex items-center justify-between rounded-lg bg-muted/30 p-4"
                       >
                         <div>
                           <p className="font-medium text-foreground">
                             Pedido #{order.id.slice(0, 8)}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(order.created_at).toLocaleDateString()}
+                            {new Date(
+                              order.created_at,
+                            ).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="text-right">
@@ -455,7 +647,9 @@ export default function Account() {
                       </div>
                     ))}
                     <Link to="/orders">
-                      <Button variant="ghost" className="w-full">Ver todos los pedidos</Button>
+                      <Button variant="ghost" className="w-full">
+                        Ver todos los pedidos
+                      </Button>
                     </Link>
                   </div>
                 )}
@@ -468,32 +662,48 @@ export default function Account() {
             <Card className="border-border/30 bg-card/50">
               <CardHeader>
                 <CardTitle>Membresía</CardTitle>
-                <CardDescription>Tu plan actual y opciones de upgrade</CardDescription>
+                <CardDescription>
+                  Tu plan actual y opciones de upgrade
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-4 mb-6">
-                  <Badge className={`${membershipConfig.className} text-lg px-4 py-2`}>
-                    <Crown className="h-5 w-5 mr-2" />
+                <div className="mb-6 py-4 text-center">
+                  <Badge
+                    className={`${membershipConfig.className} px-4 py-2 text-lg`}
+                  >
+                    <Crown className="mr-2 h-5 w-5" />
                     Plan {membershipConfig.label}
                   </Badge>
                   {profile.membership_expires_at && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Expira: {new Date(profile.membership_expires_at).toLocaleDateString()}
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Expira:{" "}
+                      {new Date(
+                        profile.membership_expires_at,
+                      ).toLocaleDateString()}
                     </p>
                   )}
                 </div>
 
                 <Separator className="my-6" />
 
-                <div className="grid md:grid-cols-3 gap-4">
-                  {/* Free Plan */}
-                  <Card className={`border-border/30 ${profile.membership_tier === 'free' ? 'ring-2 ring-accent' : ''}`}>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {/* Free */}
+                  <Card
+                    className={`border-border/30 ${
+                      profile.membership_tier === "free"
+                        ? "ring-2 ring-accent"
+                        : ""
+                    }`}
+                  >
                     <CardHeader>
                       <CardTitle className="text-lg">Gratis</CardTitle>
                       <CardDescription>Para comenzar</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold mb-4">$0<span className="text-sm font-normal">/mes</span></p>
+                      <p className="mb-4 text-3xl font-bold">
+                        $0
+                        <span className="text-sm font-normal">/mes</span>
+                      </p>
                       <ul className="space-y-2 text-sm text-muted-foreground">
                         <li>• 1 publicación/semana</li>
                         <li>• Soporte básico</li>
@@ -502,45 +712,77 @@ export default function Account() {
                     </CardContent>
                   </Card>
 
-                  {/* Basic Plan */}
-                  <Card className={`border-border/30 ${profile.membership_tier === 'basic' ? 'ring-2 ring-accent' : ''}`}>
+                  {/* Basic */}
+                  <Card
+                    className={`border-border/30 ${
+                      profile.membership_tier === "basic"
+                        ? "ring-2 ring-accent"
+                        : ""
+                    }`}
+                  >
                     <CardHeader>
                       <CardTitle className="text-lg">Básico</CardTitle>
-                      <CardDescription>Para vendedores activos</CardDescription>
+                      <CardDescription>
+                        Para vendedores activos
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold mb-4">$99<span className="text-sm font-normal">/mes</span></p>
+                      <p className="mb-4 text-3xl font-bold">
+                        $99
+                        <span className="text-sm font-normal">/mes</span>
+                      </p>
                       <ul className="space-y-2 text-sm text-muted-foreground">
                         <li>• 10 publicaciones/mes</li>
                         <li>• Soporte prioritario</li>
                         <li>• Analytics básicos</li>
                       </ul>
-                      {profile.membership_tier === 'free' && (
+                      {profile.membership_tier === "free" && (
                         <Link to="/memberships">
-                          <Button variant="outline" className="w-full mt-4">Upgrade</Button>
+                          <Button
+                            variant="outline"
+                            className="mt-4 w-full"
+                          >
+                            Upgrade
+                          </Button>
                         </Link>
                       )}
                     </CardContent>
                   </Card>
 
-                  {/* Pro Plan */}
-                  <Card className={`border-border/30 border-success/50 ${profile.membership_tier === 'pro' ? 'ring-2 ring-success' : ''}`}>
+                  {/* Pro */}
+                  <Card
+                    className={`border-border/30 border-success/50 ${
+                      profile.membership_tier === "pro"
+                        ? "ring-2 ring-success"
+                        : ""
+                    }`}
+                  >
                     <CardHeader>
-                      <Badge className="bg-success text-success-foreground w-fit mb-2">Popular</Badge>
+                      <Badge className="mb-2 w-fit bg-success text-success-foreground">
+                        Popular
+                      </Badge>
                       <CardTitle className="text-lg">Pro</CardTitle>
                       <CardDescription>Para profesionales</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-3xl font-bold mb-4">$199<span className="text-sm font-normal">/mes</span></p>
+                      <p className="mb-4 text-3xl font-bold">
+                        $199
+                        <span className="text-sm font-normal">/mes</span>
+                      </p>
                       <ul className="space-y-2 text-sm text-muted-foreground">
                         <li>• Publicaciones ilimitadas</li>
                         <li>• Soporte 24/7</li>
                         <li>• Analytics avanzados</li>
                         <li>• Boosts incluidos</li>
                       </ul>
-                      {profile.membership_tier !== 'pro' && (
+                      {profile.membership_tier !== "pro" && (
                         <Link to="/memberships">
-                          <Button variant="success" className="w-full mt-4">Upgrade</Button>
+                          <Button
+                            variant="success"
+                            className="mt-4 w-full"
+                          >
+                            Upgrade
+                          </Button>
                         </Link>
                       )}
                     </CardContent>
@@ -558,31 +800,41 @@ export default function Account() {
                 <CardDescription>Protege tu cuenta</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between rounded-lg bg-muted/30 p-4">
                   <div>
-                    <p className="font-medium text-foreground">Cambiar Contraseña</p>
-                    <p className="text-sm text-muted-foreground">Actualiza tu contraseña regularmente</p>
+                    <p className="font-medium text-foreground">
+                      Cambiar contraseña
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Actualiza tu contraseña regularmente.
+                    </p>
                   </div>
                   <Button variant="outline">Cambiar</Button>
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between rounded-lg bg-muted/30 p-4">
                   <div>
-                    <p className="font-medium text-foreground">Autenticación de Dos Factores</p>
-                    <p className="text-sm text-muted-foreground">Añade una capa extra de seguridad</p>
+                    <p className="font-medium text-foreground">
+                      Autenticación de dos factores
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Añade una capa extra de seguridad.
+                    </p>
                   </div>
                   <Button variant="outline">Activar 2FA</Button>
                 </div>
 
                 <Separator />
 
-                <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <p className="font-medium text-destructive">Zona de Peligro</p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Estas acciones son permanentes y no se pueden deshacer
+                <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+                  <p className="font-medium text-destructive">
+                    Zona de peligro
+                  </p>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    Estas acciones son permanentes y no se pueden deshacer.
                   </p>
                   <Button variant="destructive" size="sm">
-                    Eliminar Cuenta
+                    Eliminar cuenta
                   </Button>
                 </div>
               </CardContent>
@@ -595,3 +847,4 @@ export default function Account() {
     </div>
   );
 }
+
