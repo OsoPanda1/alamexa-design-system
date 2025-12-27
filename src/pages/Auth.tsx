@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -272,13 +272,13 @@ export default function Auth() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Al continuar, aceptas nuestros{" "}
-          <a href="/terms" className="text-accent hover:underline">
+          <Link to="/terms" className="text-accent hover:underline">
             Términos de Servicio
-          </a>{" "}
+          </Link>{" "}
           y{" "}
-          <a href="/privacy" className="text-accent hover:underline">
+          <Link to="/privacy" className="text-accent hover:underline">
             Política de Privacidad
-          </a>
+          </Link>
         </p>
       </div>
     </div>

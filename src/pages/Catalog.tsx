@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/ProductCard";
@@ -53,7 +54,7 @@ const Catalog = () => {
           <div className="container-alamexa">
             {/* Breadcrumbs */}
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-              <a href="/" className="hover:text-foreground transition-colors">Inicio</a>
+              <Link to="/" className="hover:text-foreground transition-colors">Inicio</Link>
               <span>/</span>
               <span className="text-foreground">Catálogo</span>
             </nav>
