@@ -3,20 +3,18 @@ import { Link } from "react-router-dom";
 const footerLinks = {
   plataforma: [
     { name: "Catálogo", path: "/catalog" },
-    { name: "Marketplace", path: "/marketplace" },
-    { name: "DreamSpaces", path: "/dreamspaces" },
-    { name: "Gobernanza", path: "/governance" },
+    { name: "Membresías", path: "/memberships" },
+    { name: "Sobre TAMV", path: "/about" },
+    { name: "DevHub", path: "/devhub" },
   ],
   soporte: [
-    { name: "Centro de Ayuda", path: "/support" },
-    { name: "Contacto", path: "/support" },
-    { name: "FAQ", path: "/support" },
-    { name: "Moderación", path: "/moderation" },
+    { name: "Mi Cuenta", path: "/account" },
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Carrito", path: "/cart" },
   ],
   legal: [
     { name: "Términos de Servicio", path: "/terms" },
     { name: "Privacidad", path: "/privacy" },
-    { name: "Cookies", path: "/cookies" },
   ],
 };
 

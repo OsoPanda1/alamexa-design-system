@@ -41,7 +41,14 @@ const staggerContainer: Variants = {
 /**
  * Data-driven sections
  */
-const platforms = [
+const platforms: Array<{
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  borderClass: string;
+  iconClass: string;
+  highlight?: string;
+}> = [
   {
     title: "TAMV ONLINE METAVERSO",
     description:
@@ -75,7 +82,7 @@ const platforms = [
     borderClass: "border-sky-500/20",
     iconClass: "text-sky-500",
   },
-] as const;
+];
 
 const sentinelSystems = [
   {
