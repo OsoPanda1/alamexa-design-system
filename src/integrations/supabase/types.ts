@@ -49,6 +49,78 @@ export type Database = {
           },
         ]
       }
+      devhub_registrations: {
+        Row: {
+          approved_at: string | null
+          city: string | null
+          country: string
+          created_at: string
+          email: string
+          experience_years: number | null
+          full_name: string
+          github_url: string | null
+          id: string
+          linkedin_url: string | null
+          membership_tier: string | null
+          motivation: string | null
+          payment_amount: number | null
+          payment_currency: string | null
+          payment_id: string | null
+          payment_status: string | null
+          phone: string | null
+          portfolio_url: string | null
+          skills: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          city?: string | null
+          country?: string
+          created_at?: string
+          email: string
+          experience_years?: number | null
+          full_name: string
+          github_url?: string | null
+          id?: string
+          linkedin_url?: string | null
+          membership_tier?: string | null
+          motivation?: string | null
+          payment_amount?: number | null
+          payment_currency?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          skills?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          city?: string | null
+          country?: string
+          created_at?: string
+          email?: string
+          experience_years?: number | null
+          full_name?: string
+          github_url?: string | null
+          id?: string
+          linkedin_url?: string | null
+          membership_tier?: string | null
+          motivation?: string | null
+          payment_amount?: number | null
+          payment_currency?: string | null
+          payment_id?: string | null
+          payment_status?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          skills?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string

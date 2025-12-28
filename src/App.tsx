@@ -6,9 +6,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { LoadingProvider } from "@/contexts/LoadingContext"; // nuevo
+import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { GlobalLoader } from "@/components/layout/GlobalLoader"; // overlay global
+import { GlobalLoader } from "@/components/layout/GlobalLoader";
 
 import Index from "./pages/Index";
 import Catalog from "./pages/Catalog";
@@ -19,6 +19,9 @@ import Memberships from "./pages/Memberships";
 import Dashboard from "./pages/Dashboard";
 import CreateProduct from "./pages/CreateProduct";
 import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import DevHubRegister from "./pages/DevHubRegister";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -30,7 +33,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Layout raíz para UI compartida
 const AppShell = ({ children }: { children: React.ReactNode }) => (
   <>
     <GlobalLoader />
@@ -51,8 +53,9 @@ const App = () => (
                 <Routes>
                   {/* Rutas públicas */}
                   <Route path="/auth" element={<Auth />} />
-                  {/* Si quieres que /about sea público, ponlo aquí */}
                   <Route path="/about" element={<About />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
 
                   {/* Rutas protegidas */}
                   <Route
@@ -108,6 +111,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <CreateProduct />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/devhub"
+                    element={
+                      <ProtectedRoute>
+                        <DevHubRegister />
                       </ProtectedRoute>
                     }
                   />

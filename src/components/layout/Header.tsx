@@ -59,6 +59,28 @@ export function Header() {
                 {route.labelEs}
               </Link>
             ))}
+            <Link
+              to="/about"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300",
+                location.pathname === "/about"
+                  ? "text-foreground bg-muted/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              )}
+            >
+              Sobre TAMV
+            </Link>
+            <Link
+              to="/devhub"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 text-primary",
+                location.pathname === "/devhub"
+                  ? "bg-primary/10"
+                  : "hover:bg-primary/5"
+              )}
+            >
+              DevHub
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -153,6 +175,25 @@ export function Header() {
                 {route.labelEs}
               </Link>
             ))}
+            <Link
+              to="/about"
+              onClick={() => setIsMenuOpen(false)}
+              className={cn(
+                "px-4 py-3 text-sm font-medium rounded-lg transition-all duration-300",
+                location.pathname === "/about"
+                  ? "text-foreground bg-muted/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              )}
+            >
+              Sobre TAMV
+            </Link>
+            <Link
+              to="/devhub"
+              onClick={() => setIsMenuOpen(false)}
+              className="px-4 py-3 text-sm font-medium rounded-lg text-primary hover:bg-primary/10"
+            >
+              DevHub / Registro TAMV
+            </Link>
             
             {user ? (
               <>
