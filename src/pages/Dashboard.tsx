@@ -1,5 +1,5 @@
-import { useMemo, memo, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useMemo, memo, useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,6 +7,7 @@ import { useTrades } from "@/hooks/useTrades";
 import { useProducts } from "@/hooks/useProducts";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useLoading } from "@/contexts/LoadingContext";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -447,12 +448,14 @@ const SummaryCard = memo(function SummaryCard({
 // --------- Componente principal ---------
 
 const Dashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
+  const [searchParams] = useSearchParams();
   const { pendingReceived, pendingSent, accepted, completed, loading: tradesLoading } =
     useTrades();
   const { myProducts, loading: productsLoading } = useProducts();
   const { notifications, unreadCount } = useNotifications();
   const { isLoading, setIsLoading } = useLoading();
+  const [showDevHubSuccess, setShowDevHubSuccess] = useState(false);
 
   // Sin user => redirigir (opcional, dependiendo de tu router)
   const navigate = useNavigate();
@@ -461,6 +464,17 @@ const Dashboard = () => {
       navigate("/auth", { replace: true });
     }
   }, [user, navigate]);
+
+  // Check for successful DevHub payment
+  useEffect(() => {
+    if (searchParams.get("devhub_payment") === "success") {
+      setShowDevHubSuccess(true);
+      toast.success("¡Pago completado! Tu membresía DevHub está activa.");
+      refreshProfile();
+      // Clean URL
+      window.history.replaceState({}, "", "/dashboard");
+    }
+  }, [searchParams, refreshProfile]);
 
   // Encender/apagar loader global en base a cargas de hooks
   useEffect(() => {
@@ -533,6 +547,31 @@ const Dashboard = () => {
 
       <main className="pb-16 pt-24">
         <div className="container-alamexa">
+          {/* DevHub Success Banner */}
+          {showDevHubSuccess && (
+            <div className="mb-8 rounded-xl border border-success/30 bg-success/10 p-6 animate-fade-in">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/20">
+                  <CheckCircle className="h-6 w-6 text-success" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    ¡Bienvenido a DevHub!
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Tu membresía ha sido activada. Ya eres parte del ecosistema TAMV ONLINE NETWORK.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDevHubSuccess(false)}
+                  className="ml-auto text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Welcome */}
           <div className="mb-8">
             <h1 className="text-headline text-foreground">
@@ -541,6 +580,11 @@ const Dashboard = () => {
             <p className="mt-2 text-muted-foreground">
               Bienvenido a tu panel de control de Alamexa
             </p>
+            {profile?.membership_tier && profile.membership_tier !== "free" && (
+              <Badge variant="outline" className="mt-2 bg-success/10 text-success border-success/30">
+                Miembro {profile.membership_tier.toUpperCase()}
+              </Badge>
+            )}
           </div>
 
           {/* Stats */}
