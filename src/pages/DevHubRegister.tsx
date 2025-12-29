@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDevHubCheckout } from "@/hooks/useDevHubCheckout";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
@@ -126,8 +127,18 @@ const countries = [
 export default function DevHubRegister() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
+  const { initiateCheckout, isLoading: checkoutLoading } = useDevHubCheckout();
+
+  // Check for cancelled payment
+  useEffect(() => {
+    if (searchParams.get("payment") === "cancelled") {
+      toast.error("Pago cancelado. Puedes intentar de nuevo.");
+    }
+  }, [searchParams]);
 
   const form = useForm<DevHubFormData>({
     resolver: zodResolver(devHubSchema),
@@ -161,21 +172,25 @@ export default function DevHubRegister() {
         .map((s) => s.trim())
         .filter(Boolean);
 
-      const { error } = await supabase.from("devhub_registrations").insert({
-        user_id: user.id,
-        full_name: data.fullName,
-        email: data.email,
-        phone: data.phone || null,
-        country: data.country,
-        city: data.city || null,
-        github_url: data.githubUrl || null,
-        portfolio_url: data.portfolioUrl || null,
-        linkedin_url: data.linkedinUrl || null,
-        skills: skillsArray,
-        experience_years: parseInt(data.experienceYears, 10),
-        motivation: data.motivation,
-        payment_status: "pending",
-      });
+      const { data: insertedData, error } = await supabase
+        .from("devhub_registrations")
+        .insert({
+          user_id: user.id,
+          full_name: data.fullName,
+          email: data.email,
+          phone: data.phone || null,
+          country: data.country,
+          city: data.city || null,
+          github_url: data.githubUrl || null,
+          portfolio_url: data.portfolioUrl || null,
+          linkedin_url: data.linkedinUrl || null,
+          skills: skillsArray,
+          experience_years: parseInt(data.experienceYears, 10),
+          motivation: data.motivation,
+          payment_status: "pending",
+        })
+        .select("id")
+        .single();
 
       if (error) {
         if (error.code === "23505") {
@@ -186,6 +201,7 @@ export default function DevHubRegister() {
         return;
       }
 
+      setRegistrationId(insertedData?.id || null);
       setIsRegistered(true);
       toast.success("¡Registro exitoso! Procede al pago para completar tu membresía.");
     } catch (err) {
@@ -194,6 +210,15 @@ export default function DevHubRegister() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePayment = () => {
+    if (!user) return;
+    initiateCheckout({
+      userId: user.id,
+      email: user.email || "",
+      registrationId: registrationId || undefined,
+    });
   };
 
   if (!user) {
@@ -244,15 +269,18 @@ export default function DevHubRegister() {
               <p className="text-sm text-muted-foreground">Pago único de membresía</p>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link to="/memberships">
-                <Button size="lg" variant="hero">
-                  Completar Pago
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                variant="hero"
+                onClick={handlePayment}
+                disabled={checkoutLoading}
+              >
+                {checkoutLoading ? "Procesando..." : "Pagar $250 MXN"}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
               <Link to="/dashboard">
                 <Button size="lg" variant="outline">
-                  Ir al Dashboard
+                  Pagar después
                 </Button>
               </Link>
             </div>
