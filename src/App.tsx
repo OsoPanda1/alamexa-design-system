@@ -9,9 +9,12 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { GlobalLoader } from "@/components/layout/GlobalLoader";
+import { OnboardingModal, useOnboarding } from "@/components/OnboardingModal";
 
 import Index from "./pages/Index";
+import Marketplace from "./pages/Marketplace";
 import Catalog from "./pages/Catalog";
+import Trades from "./pages/Trades";
 import Auth from "./pages/Auth";
 import Cart from "./pages/Cart";
 import Account from "./pages/Account";
@@ -33,14 +36,23 @@ const queryClient = new QueryClient({
   },
 });
 
-const AppShell = ({ children }: { children: React.ReactNode }) => (
-  <>
-    <GlobalLoader />
-    {children}
-    <Toaster />
-    <Sonner />
-  </>
-);
+function AppShellWithOnboarding({ children }: { children: React.ReactNode }) {
+  const { showOnboarding, setShowOnboarding, completeOnboarding } = useOnboarding();
+
+  return (
+    <>
+      <GlobalLoader />
+      {children}
+      <Toaster />
+      <Sonner />
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={completeOnboarding}
+      />
+    </>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -49,36 +61,24 @@ const App = () => (
         <CartProvider>
           <LoadingProvider>
             <BrowserRouter>
-              <AppShell>
+              <AppShellWithOnboarding>
                 <Routes>
                   {/* Rutas públicas */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/catalog" element={<Catalog />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/memberships" element={<Memberships />} />
 
                   {/* Rutas protegidas */}
                   <Route
-                    path="/"
+                    path="/trades"
                     element={
                       <ProtectedRoute>
-                        <Index />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/catalog"
-                    element={
-                      <ProtectedRoute>
-                        <Catalog />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/memberships"
-                    element={
-                      <ProtectedRoute>
-                        <Memberships />
+                        <Trades />
                       </ProtectedRoute>
                     }
                   />
@@ -126,7 +126,7 @@ const App = () => (
                   {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </AppShell>
+              </AppShellWithOnboarding>
             </BrowserRouter>
           </LoadingProvider>
         </CartProvider>
