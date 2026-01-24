@@ -2,7 +2,6 @@ import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import App from "./App.tsx";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -17,12 +16,13 @@ import "./index.css";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutos
-      gcTime: 10 * 60 * 1000, // 10 minutos garbage collection
-      retry: (failureCount, error: any) => {
-        if (error.status === 404) return false;
-        if (error.status >= 500) return 3;
-        return 1;
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      retry: (failureCount, error) => {
+        const err = error as { status?: number };
+        if (err.status === 404) return false;
+        if (err.status && err.status >= 500) return failureCount < 3;
+        return failureCount < 1;
       },
       refetchOnWindowFocus: false,
       refetchOnReconnect: "always",
@@ -55,7 +55,6 @@ function AppRoot() {
               </CartProvider>
             </AuthProvider>
           </ThemeProvider>
-          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </HelmetProvider>
     </React.StrictMode>
@@ -65,22 +64,13 @@ function AppRoot() {
 // Service Worker (PWA)
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
-    if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller?.addEventListener("message", (event) => {
-        if (event.data?.type === "UPDATE_AVAILABLE") {
-          // Notificar actualización disponible
-          window.location.reload();
-        }
-      });
-    }
-    
     navigator.serviceWorker
       .register("/sw.js")
       .then((registration) => {
-        console.log("SW registrado: ", registration);
+        console.log("SW registrado:", registration.scope);
       })
-      .catch((registrationError) => {
-        console.log("SW falló al registrarse: ", registrationError);
+      .catch((error) => {
+        console.log("SW registro fallido:", error);
       });
   });
 }
@@ -96,9 +86,10 @@ window.addEventListener("unhandledrejection", (event) => {
 
 // Performance monitoring
 if (import.meta.env.PROD) {
-  // Report Web Vitals
   import("./utils/web-vitals").then(({ reportWebVitals }) => {
-    reportWebVitals(console.log);
+    reportWebVitals((metric) => {
+      console.log(`[Web Vitals] ${metric.name}: ${metric.value}`);
+    });
   });
 }
 
