@@ -4,63 +4,109 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
 
-/* ALAMEXA Design System */
+/* ALAMEXA Design System - Premium Marketplace */
 
 @layer base {
   :root {
-    /* Core Palette - ALAMEXA */
+    /* Core Palette - ALAMEXA Light Mode */
     --deep-black: 240 6% 4%;
-    --silver: 240 4% 77%;
+    --silver: 240 4% 46%;
     --silver-bright: 240 8% 88%;
     --flag-green: 150 100% 24%;
     --ivory: 40 33% 96%;
     --cherry: 355 97% 41%;
     
-    /* Semantic mappings */
-    --background: var(--deep-black);
-    --foreground: var(--ivory);
+    /* Light Mode Semantic mappings */
+    --background: 0 0% 98%;
+    --foreground: 240 6% 10%;
 
-    --card: 240 5% 8%;
-    --card-foreground: var(--ivory);
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 10%;
 
-    --popover: 240 5% 6%;
-    --popover-foreground: var(--ivory);
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 10%;
 
-    --primary: var(--deep-black);
-    --primary-foreground: var(--ivory);
+    --primary: 240 6% 10%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: var(--ivory);
-    --secondary-foreground: var(--deep-black);
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: var(--silver);
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    --accent: var(--silver);
-    --accent-foreground: var(--deep-black);
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: var(--cherry);
-    --destructive-foreground: var(--ivory);
+    --destructive-foreground: 0 0% 98%;
     
     --success: var(--flag-green);
-    --success-foreground: var(--ivory);
+    --success-foreground: 0 0% 98%;
 
-    --border: 240 4% 20%;
-    --input: 240 4% 16%;
-    --ring: var(--silver);
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 240 4% 46%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     /* Custom tokens */
-    --silver-glow: 0 0 20px hsl(var(--silver) / 0.3);
-    --gradient-hero: linear-gradient(180deg, hsl(var(--deep-black)) 0%, hsl(240 5% 8%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(240 5% 10%) 0%, hsl(240 5% 6%) 100%);
-    --gradient-silver: linear-gradient(135deg, hsl(var(--silver-bright)) 0%, hsl(var(--silver)) 100%);
+    --silver-glow: 0 0 20px hsl(240 4% 46% / 0.2);
+    --gradient-hero: linear-gradient(180deg, hsl(0 0% 98%) 0%, hsl(240 5% 96%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(240 5% 98%) 100%);
+    --gradient-silver: linear-gradient(135deg, hsl(240 4% 20%) 0%, hsl(240 4% 10%) 100%);
     
     /* Typography */
     --font-sans: 'Inter', system-ui, sans-serif;
     --font-serif: 'Source Serif 4', Georgia, serif;
     
     /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 6% 10%;
+    --sidebar-primary: 240 4% 16%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 240 4% 46%;
+  }
+
+  .dark {
+    /* Dark Mode - ALAMEXA Premium */
+    --background: var(--deep-black);
+    --foreground: var(--ivory);
+    
+    --card: 240 5% 8%;
+    --card-foreground: var(--ivory);
+    
+    --popover: 240 5% 6%;
+    --popover-foreground: var(--ivory);
+    
+    --primary: var(--deep-black);
+    --primary-foreground: var(--ivory);
+    
+    --secondary: var(--ivory);
+    --secondary-foreground: var(--deep-black);
+    
+    --muted: 240 4% 16%;
+    --muted-foreground: var(--silver);
+    
+    --accent: var(--silver);
+    --accent-foreground: var(--deep-black);
+    
+    --destructive: var(--cherry);
+    --destructive-foreground: var(--ivory);
+    
+    --border: 240 4% 20%;
+    --input: 240 4% 16%;
+    --ring: var(--silver);
+
+    --silver-glow: 0 0 20px hsl(var(--silver) / 0.3);
+    --gradient-hero: linear-gradient(180deg, hsl(var(--deep-black)) 0%, hsl(240 5% 8%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(240 5% 10%) 0%, hsl(240 5% 6%) 100%);
+    --gradient-silver: linear-gradient(135deg, hsl(var(--silver-bright)) 0%, hsl(var(--silver)) 100%);
+    
+    /* Sidebar Dark */
     --sidebar-background: 240 5% 6%;
     --sidebar-foreground: var(--ivory);
     --sidebar-primary: var(--silver);
@@ -69,29 +115,6 @@
     --sidebar-accent-foreground: var(--ivory);
     --sidebar-border: 240 4% 16%;
     --sidebar-ring: var(--silver);
-  }
-
-  .dark {
-    /* ALAMEXA is dark by default, light mode uses same values */
-    --background: var(--deep-black);
-    --foreground: var(--ivory);
-    --card: 240 5% 8%;
-    --card-foreground: var(--ivory);
-    --popover: 240 5% 6%;
-    --popover-foreground: var(--ivory);
-    --primary: var(--deep-black);
-    --primary-foreground: var(--ivory);
-    --secondary: var(--ivory);
-    --secondary-foreground: var(--deep-black);
-    --muted: 240 4% 16%;
-    --muted-foreground: var(--silver);
-    --accent: var(--silver);
-    --accent-foreground: var(--deep-black);
-    --destructive: var(--cherry);
-    --destructive-foreground: var(--ivory);
-    --border: 240 4% 20%;
-    --input: 240 4% 16%;
-    --ring: var(--silver);
   }
 }
 
@@ -113,6 +136,24 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif);
     letter-spacing: -0.02em;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
   }
 }
 
@@ -137,6 +178,23 @@
   .hover-silver-glow:hover {
     box-shadow: var(--silver-glow);
     @apply border-accent/60;
+  }
+
+  /* Premium card styles */
+  .card-premium {
+    @apply bg-card border border-border/30 rounded-xl overflow-hidden;
+    @apply hover:border-accent/30 hover:shadow-lg transition-all duration-300;
+  }
+
+  /* Gradient text for headings */
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--muted-foreground)) 100%);
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-xl border border-border/30;
   }
 }
 
@@ -186,6 +244,16 @@
   .stagger-3 { animation-delay: 0.3s; }
   .stagger-4 { animation-delay: 0.4s; }
   .stagger-5 { animation-delay: 0.5s; }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes fadeIn {
@@ -223,10 +291,15 @@
 .shimmer {
   background: linear-gradient(
     90deg,
-    hsl(var(--silver) / 0) 0%,
-    hsl(var(--silver) / 0.3) 50%,
-    hsl(var(--silver) / 0) 100%
+    hsl(var(--muted-foreground) / 0) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted-foreground) / 0) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
+}
+
+/* Focus ring */
+.focus-ring {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
 }
