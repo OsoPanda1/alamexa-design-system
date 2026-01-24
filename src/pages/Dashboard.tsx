@@ -454,7 +454,7 @@ const Dashboard = () => {
     useTrades();
   const { myProducts, loading: productsLoading } = useProducts();
   const { notifications, unreadCount } = useNotifications();
-  const { isLoading, setIsLoading } = useLoading();
+  const loadingState = useLoading();
   const [showDevHubSuccess, setShowDevHubSuccess] = useState(false);
 
   // Sin user => redirigir (opcional, dependiendo de tu router)
@@ -476,13 +476,8 @@ const Dashboard = () => {
     }
   }, [searchParams, refreshProfile]);
 
-  // Encender/apagar loader global en base a cargas de hooks
-  useEffect(() => {
-    const anyLoading = tradesLoading || productsLoading;
-    if (anyLoading !== isLoading) {
-      setIsLoading(anyLoading);
-    }
-  }, [tradesLoading, productsLoading, isLoading, setIsLoading]);
+  // Loader se maneja automáticamente por el contexto
+  // No hay control manual de setIsLoading
 
   const activeProducts = useMemo(
     () => myProducts.filter((p) => p.status === "active"),

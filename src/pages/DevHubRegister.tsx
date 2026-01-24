@@ -4,7 +4,19 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { ArrowLeft, X, Home, LayoutDashboard, ShoppingBag } from "lucide-react";
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  X, 
+  LayoutDashboard, 
+  ShoppingBag,
+  Code,
+  CheckCircle,
+  Shield,
+  Users,
+  Globe,
+  Zap
+} from "lucide-react";
 
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -34,7 +46,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// ... (schema y tipos iguales)
+// Schema de validación
+const devHubSchema = z.object({
+  fullName: z.string().min(3, "Nombre debe tener al menos 3 caracteres").max(100),
+  email: z.string().email("Email inválido"),
+  phone: z.string().min(10, "Teléfono debe tener al menos 10 dígitos").max(20),
+  country: z.string().min(2, "País requerido"),
+  city: z.string().min(2, "Ciudad requerida"),
+  githubUrl: z.string().url("URL de GitHub inválida").optional().or(z.literal("")),
+  portfolioUrl: z.string().url("URL de portfolio inválida").optional().or(z.literal("")),
+  linkedinUrl: z.string().url("URL de LinkedIn inválida").optional().or(z.literal("")),
+  experienceYears: z.string().min(1, "Selecciona tu experiencia"),
+  skills: z.string().min(10, "Describe tus habilidades (mínimo 10 caracteres)"),
+  motivation: z.string().min(20, "Cuéntanos tu motivación (mínimo 20 caracteres)"),
+});
+
+type DevHubFormData = z.infer<typeof devHubSchema>;
+
+const benefits = [
+  { icon: Users, label: "Comunidad LATAM", desc: "Red de desarrolladores" },
+  { icon: Globe, label: "Visibilidad", desc: "Perfil en directorio" },
+  { icon: Zap, label: "Proyectos", desc: "Acceso a oportunidades" },
+  { icon: Shield, label: "Credencial", desc: "Badge verificado" },
+];
 
 export default function DevHubRegister() {
   const { user } = useAuth();
@@ -45,13 +79,11 @@ export default function DevHubRegister() {
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const { initiateCheckout, isLoading: checkoutLoading } = useDevHubCheckout();
 
-  // Función universal para salir
   const handleCancel = () => {
     toast.info("Registro cancelado. Puedes volver cuando quieras.");
-    navigate(-1); // Regresa a página anterior
+    navigate(-1);
   };
 
-  // Check for cancelled payment
   useEffect(() => {
     if (searchParams.get("payment") === "cancelled") {
       toast.error("Pago cancelado. Puedes intentar de nuevo cuando quieras.");
@@ -76,21 +108,68 @@ export default function DevHubRegister() {
   });
 
   const onSubmit = async (data: DevHubFormData) => {
-    // ... (lógica igual)
+    if (!user) {
+      toast.error("Debes iniciar sesión");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const insertData = {
+        user_id: user.id,
+        full_name: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        country: data.country,
+        city: data.city,
+        github_url: data.githubUrl || null,
+        portfolio_url: data.portfolioUrl || null,
+        linkedin_url: data.linkedinUrl || null,
+        experience_years: data.experienceYears,
+        skills: data.skills,
+        motivation: data.motivation,
+        payment_status: "pending",
+        payment_amount: 250,
+        payment_currency: "MXN",
+      };
+
+      const { data: registration, error } = await supabase
+        .from("devhub_registrations")
+        .insert(insertData as any)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setRegistrationId(registration.id);
+      setIsRegistered(true);
+      toast.success("¡Registro guardado! Completa el pago para activar tu membresía.");
+    } catch (error) {
+      console.error("Error al registrar:", error);
+      toast.error("Error al guardar el registro. Intenta de nuevo.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handlePayment = () => {
-    // ... (lógica igual)
+  const handlePayment = async () => {
+    if (!user || !registrationId) return;
+    
+    try {
+      await initiateCheckout({ userId: user.id, email: user.email || "", registrationId });
+    } catch (error) {
+      console.error("Error al iniciar pago:", error);
+      toast.error("Error al procesar pago. Intenta de nuevo.");
+    }
   };
 
-  // Pantalla sin usuario (con escape claro)
+  // Pantalla sin usuario
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-24 lg:py-32">
           <div className="mx-auto max-w-lg text-center">
-            {/* Breadcrumb */}
             <div className="mb-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <button onClick={() => navigate(-1)} className="flex items-center gap-1 hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" />
@@ -129,13 +208,12 @@ export default function DevHubRegister() {
     );
   }
 
-  // Pantalla de pago (con múltiples escapes)
+  // Pantalla de pago
   if (isRegistered) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-24 lg:py-32">
-          {/* Breadcrumb */}
           <div className="mb-8 flex items-center gap-4 text-sm text-muted-foreground">
             <button onClick={handleCancel} className="flex items-center gap-1 hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
@@ -146,8 +224,8 @@ export default function DevHubRegister() {
           </div>
 
           <div className="mx-auto max-w-lg text-center">
-            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-success/20">
-              <CheckCircle className="h-10 w-10 text-success" />
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-500/20">
+              <CheckCircle className="h-10 w-10 text-green-500" />
             </div>
             <h1 className="mb-4 text-3xl font-bold text-foreground">¡Registro Completado!</h1>
             <p className="mb-8 text-muted-foreground">
@@ -156,14 +234,12 @@ export default function DevHubRegister() {
 
             <div className="mb-8 rounded-lg border border-border/50 bg-card/50 p-6">
               <p className="mb-2 text-2xl font-bold text-foreground">$250 MXN</p>
-              <p className="text-sm text-muted-foreground">Pago único • ID: {registrationId}</p>
+              <p className="text-sm text-muted-foreground">Pago único • ID: {registrationId?.slice(0, 8)}</p>
             </div>
 
-            {/* Acciones principales */}
             <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:justify-center">
               <Button 
                 size="lg" 
-                variant="hero"
                 onClick={handlePayment}
                 disabled={checkoutLoading}
                 className="shadow-lg hover:shadow-xl"
@@ -178,7 +254,6 @@ export default function DevHubRegister() {
               </Link>
             </div>
 
-            {/* Opciones de escape */}
             <div className="flex flex-wrap items-center justify-center gap-4 pt-6 border-t border-border/30 text-xs text-muted-foreground">
               <Button 
                 variant="ghost" 
@@ -205,7 +280,7 @@ export default function DevHubRegister() {
                 className="gap-1 hover:text-destructive"
               >
                 <X className="h-4 w-4" />
-                Cancelar Registro
+                Cancelar
               </Button>
             </div>
           </div>
@@ -215,12 +290,11 @@ export default function DevHubRegister() {
     );
   }
 
-  // Formulario principal (con cancelación clara)
+  // Formulario principal
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-24 lg:py-32">
-        {/* Breadcrumb */}
         <div className="mb-8 flex items-center gap-4 text-sm text-muted-foreground">
           <button onClick={handleCancel} className="flex items-center gap-1 hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
@@ -231,7 +305,6 @@ export default function DevHubRegister() {
         </div>
 
         <div className="mx-auto max-w-4xl">
-          {/* Header */}
           <div className="mb-12 text-center">
             <Badge variant="outline" className="mb-4 inline-flex items-center gap-2">
               <Shield className="h-3 w-3" />
@@ -245,12 +318,18 @@ export default function DevHubRegister() {
             </p>
           </div>
 
-          {/* Benefits (igual) */}
+          {/* Benefits */}
           <div className="mb-12 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {/* ... benefits igual */}
+            {benefits.map((benefit) => (
+              <div key={benefit.label} className="rounded-lg border border-border/30 bg-card/50 p-4 text-center">
+                <benefit.icon className="mx-auto mb-2 h-6 w-6 text-primary" />
+                <p className="font-medium text-foreground">{benefit.label}</p>
+                <p className="text-xs text-muted-foreground">{benefit.desc}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Formulario con footer de acciones */}
+          {/* Formulario */}
           <Card className="border-border/30">
             <CardHeader>
               <CardTitle>Información del Desarrollador</CardTitle>
@@ -259,9 +338,195 @@ export default function DevHubRegister() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* ... todo el formulario igual hasta el final */}
-                  
-                  {/* Footer con acciones duales */}
+                  {/* Datos personales */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nombre completo *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Tu nombre completo" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email *</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="tu@email.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Teléfono *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="+52 55 1234 5678" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>País *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona tu país" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="México">México</SelectItem>
+                              <SelectItem value="Colombia">Colombia</SelectItem>
+                              <SelectItem value="Argentina">Argentina</SelectItem>
+                              <SelectItem value="Chile">Chile</SelectItem>
+                              <SelectItem value="Perú">Perú</SelectItem>
+                              <SelectItem value="Ecuador">Ecuador</SelectItem>
+                              <SelectItem value="Venezuela">Venezuela</SelectItem>
+                              <SelectItem value="Otro">Otro</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ciudad *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Tu ciudad" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="experienceYears"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Años de experiencia *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="0-1">0-1 años</SelectItem>
+                              <SelectItem value="2-3">2-3 años</SelectItem>
+                              <SelectItem value="4-5">4-5 años</SelectItem>
+                              <SelectItem value="6-10">6-10 años</SelectItem>
+                              <SelectItem value="10+">10+ años</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* URLs profesionales */}
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="githubUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>GitHub</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://github.com/usuario" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="portfolioUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Portfolio</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://tuportfolio.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="linkedinUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>LinkedIn</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://linkedin.com/in/usuario" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Habilidades y motivación */}
+                  <FormField
+                    control={form.control}
+                    name="skills"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Habilidades técnicas *</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="React, Node.js, Python, bases de datos, etc." 
+                            className="min-h-[80px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>Describe tus tecnologías y habilidades principales</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="motivation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Motivación *</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="¿Por qué quieres unirte al ecosistema TAMV DevHub?" 
+                            className="min-h-[100px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Footer con acciones */}
                   <div className="flex flex-col gap-4 pt-6 border-t border-border/30 pb-6 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       <p>Al registrarte aceptas los</p>
