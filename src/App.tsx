@@ -15,6 +15,8 @@ import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import Catalog from "./pages/Catalog";
 import Trades from "./pages/Trades";
+import Messages from "./pages/Messages";
+import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
 import Cart from "./pages/Cart";
 import Account from "./pages/Account";
@@ -67,6 +69,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/catalog" element={<Catalog />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/terms" element={<Terms />} />
@@ -79,6 +82,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Trades />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/messages"
+                    element={
+                      <ProtectedRoute>
+                        <Messages />
                       </ProtectedRoute>
                     }
                   />

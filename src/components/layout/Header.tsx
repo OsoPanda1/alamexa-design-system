@@ -1,12 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Search, ShoppingCart, User, Menu, X, LogOut, Shield, RefreshCw, Bell } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, LogOut, Shield, RefreshCw, Bell, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ const navRoutes = [
   { path: "/marketplace", label: "Marketplace" },
   { path: "/catalog", label: "Catálogo" },
   { path: "/trades", label: "Trueques", icon: RefreshCw, requiresAuth: true },
+  { path: "/messages", label: "Mensajes", icon: MessageSquare, requiresAuth: true },
   { path: "/memberships", label: "Membresías" },
 ];
 
@@ -155,6 +157,12 @@ export function Header() {
                     <Link to="/trades" className="flex items-center gap-2">
                       <RefreshCw className="h-4 w-4" />
                       Mis Trueques
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/messages" className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Mensajes
                     </Link>
                   </DropdownMenuItem>
                   {(role === 'admin' || role === 'moderator') && (

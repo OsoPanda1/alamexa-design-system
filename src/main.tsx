@@ -61,19 +61,12 @@ function AppRoot() {
   );
 }
 
-// Service Worker (PWA)
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((registration) => {
-        console.log("SW registrado:", registration.scope);
-      })
-      .catch((error) => {
-        console.log("SW registro fallido:", error);
-      });
-  });
-}
+// Service Worker (PWA) - Deshabilitado hasta que se configure correctamente
+// if ("serviceWorker" in navigator && import.meta.env.PROD) {
+//   window.addEventListener("load", () => {
+//     navigator.serviceWorker.register("/sw.js");
+//   });
+// }
 
 // Error reporting global
 window.addEventListener("error", (event) => {
