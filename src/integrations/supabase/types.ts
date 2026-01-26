@@ -49,6 +49,47 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          last_message_id: string | null
+          participant_1: string
+          participant_2: string
+          trade_proposal_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_id?: string | null
+          participant_1: string
+          participant_2: string
+          trade_proposal_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_id?: string | null
+          participant_1?: string
+          participant_2?: string
+          trade_proposal_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_trade_proposal_id_fkey"
+            columns: ["trade_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "trade_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       devhub_registrations: {
         Row: {
           approved_at: string | null
@@ -190,6 +231,50 @@ export type Database = {
             columns: ["payment_method_id"]
             isOneToOne: false
             referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          message_type: string | null
+          metadata: Json | null
+          read_at: string | null
+          receiver_id: string
+          sender_id: string
+          trade_proposal_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          read_at?: string | null
+          receiver_id: string
+          sender_id: string
+          trade_proposal_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          read_at?: string | null
+          receiver_id?: string
+          sender_id?: string
+          trade_proposal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_trade_proposal_id_fkey"
+            columns: ["trade_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "trade_proposals"
             referencedColumns: ["id"]
           },
         ]

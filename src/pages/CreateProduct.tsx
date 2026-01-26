@@ -1,21 +1,25 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useProducts, PRODUCT_CATEGORIES, PRODUCT_CONDITIONS, TRADE_TYPES } from "@/hooks/useProducts";
+import { useMediaUpload, type UploadedMedia } from "@/hooks/useMediaUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, X, Loader2, ImagePlus } from "lucide-react";
+import { ArrowLeft, Upload, X, Loader2, ImagePlus, Video, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const CreateProduct = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { createProduct } = useProducts();
+  const { uploadMultiple, uploading, progress } = useMediaUpload();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -29,25 +33,32 @@ const CreateProduct = () => {
     location: "",
     trade_type: "both",
     trade_preferences: "",
-    images: [] as string[],
   });
 
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [newImageUrl, setNewImageUrl] = useState("");
+  const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia[]>([]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const addImageUrl = () => {
-    if (newImageUrl && imageUrls.length < 5) {
-      setImageUrls(prev => [...prev, newImageUrl]);
-      setNewImageUrl("");
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = 10 - uploadedMedia.length;
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    
+    const results = await uploadMultiple(filesToUpload);
+    setUploadedMedia(prev => [...prev, ...results]);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
-  const removeImage = (index: number) => {
-    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  const removeMedia = (index: number) => {
+    setUploadedMedia(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,6 +75,10 @@ const CreateProduct = () => {
 
     setLoading(true);
     
+    const imageUrls = uploadedMedia
+      .filter(m => m.type === 'image')
+      .map(m => m.url);
+
     const product = await createProduct({
       title: formData.title,
       description: formData.description || undefined,
@@ -248,51 +263,81 @@ const CreateProduct = () => {
                   />
                 </div>
 
-                {/* Images */}
-                <div className="space-y-2">
-                  <Label>Imágenes (URLs)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="https://ejemplo.com/imagen.jpg"
-                      value={newImageUrl}
-                      onChange={(e) => setNewImageUrl(e.target.value)}
-                      className="bg-muted/30"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addImageUrl}
-                      disabled={imageUrls.length >= 5}
-                    >
-                      <ImagePlus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Agrega hasta 5 URLs de imágenes de tu producto
-                  </p>
+                {/* Media Upload */}
+                <div className="space-y-4">
+                  <Label>Fotos y Videos (hasta 10 archivos)</Label>
                   
-                  {imageUrls.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {imageUrls.map((url, index) => (
+                  {/* Upload area */}
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,video/*,audio/*"
+                      multiple
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <div className="flex justify-center gap-4 mb-4">
+                      <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                      <Video className="h-8 w-8 text-muted-foreground" />
+                      <Mic className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">
+                      Haz clic o arrastra archivos aquí
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Imágenes, videos o audio (máx. 50MB cada uno)
+                    </p>
+                  </div>
+
+                  {/* Upload progress */}
+                  {uploading && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Subiendo...</span>
+                        <span>{progress}%</span>
+                      </div>
+                      <Progress value={progress} />
+                    </div>
+                  )}
+                  
+                  {/* Uploaded files preview */}
+                  {uploadedMedia.length > 0 && (
+                    <div className="grid grid-cols-4 gap-3">
+                      {uploadedMedia.map((media, index) => (
                         <div
                           key={index}
-                          className="relative group w-20 h-20 rounded-lg overflow-hidden border border-border/30"
+                          className="relative group aspect-square rounded-lg overflow-hidden border border-border/30 bg-muted"
                         >
-                          <img
-                            src={url}
-                            alt={`Imagen ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/placeholder.svg';
-                            }}
-                          />
+                          {media.type === 'image' ? (
+                            <img
+                              src={media.url}
+                              alt={media.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : media.type === 'video' ? (
+                            <video
+                              src={media.url}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Mic className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
                           <button
                             type="button"
-                            onClick={() => removeImage(index)}
+                            onClick={() => removeMedia(index)}
                             className="absolute top-1 right-1 p-1 bg-destructive rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="h-3 w-3 text-destructive-foreground" />
                           </button>
+                          <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[10px] bg-background/80 rounded capitalize">
+                            {media.type}
+                          </span>
                         </div>
                       ))}
                     </div>
