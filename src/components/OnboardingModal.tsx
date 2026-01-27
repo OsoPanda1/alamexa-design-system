@@ -33,68 +33,73 @@ const steps = [
     title: "Bienvenido a ALAMEXA",
     subtitle: "La nueva era del comercio inteligente",
     description:
-      "ALAMEXA es una plataforma innovadora que fusiona lo mejor de los marketplaces modernos. No es solo una app para comprar y vender: es un ecosistema digital elegante, seguro y exclusivo.",
+      "ALAMEXA fusiona lo mejor de Mercado Libre, Temu, Alibaba y Shopify en una plataforma revolucionaria. No es solo comprar y vender: es un ecosistema P2P elegante, seguro y exclusivo diseñado para latinos.",
     features: [
-      "Interfaz premium y sofisticada",
-      "Tecnología de vanguardia",
-      "Experiencia de usuario excepcional",
+      "Interfaz premium inspirada en los mejores marketplaces",
+      "Diseñado por y para la comunidad latina",
+      "Tecnología de vanguardia con IA integrada",
     ],
+    example: "Juan encontró su iPhone soñado y lo intercambió por su consola PS5 + $2,000 MXN. ¡Sin intermediarios, con total seguridad!",
     gradient: "from-accent/20 to-flag-green/20",
   },
   {
     id: 2,
     icon: RefreshCw,
-    title: "Sistema de Trueque",
-    subtitle: "Intercambia con confianza",
+    title: "Sistema de Trueque Inteligente",
+    subtitle: "La joya de ALAMEXA",
     description:
-      "Nuestro revolucionario sistema de trueque te permite intercambiar productos de forma segura. ALAMEXA valida el valor, asegura el proceso y gestiona el trámite para que ambos reciban exactamente lo acordado.",
+      "¿Tienes algo que no usas? Intercámbialo por lo que necesitas. Nuestro algoritmo calcula valores justos, y el sistema de custodia (escrow) asegura que ambas partes cumplan.",
     features: [
-      "Valoración automática de productos",
-      "Ajuste con dinero (trueque + efectivo)",
-      "Custodia de intercambio (escrow)",
+      "Valoración automática por IA",
+      "Trueque puro o con ajuste de efectivo",
+      "Custodia segura hasta confirmar entrega",
     ],
+    example: "María ofreció su bicicleta Trek ($8,500) por la cámara Sony de Pedro ($9,000). Pedro aceptó y María pagó $500 de diferencia. ¡Ambos felices!",
     gradient: "from-flag-green/20 to-accent/20",
   },
   {
     id: 3,
     icon: ShoppingBag,
-    title: "Compra y Vende",
-    subtitle: "Múltiples opciones de comercio",
+    title: "Compra y Venta Tradicional",
+    subtitle: "El marketplace que conoces, mejorado",
     description:
-      "Además del trueque, puedes comprar y vender con métodos de pago seguros. Publica tus productos con fotos, videos y descripciones detalladas para maximizar tus oportunidades.",
+      "Además del trueque, puedes comprar o vender de forma tradicional con pagos seguros. Publica con fotos, videos, audio y textos para maximizar tus ventas.",
     features: [
-      "Pagos seguros integrados",
-      "Publicaciones multimedia",
-      "Categorías especializadas",
+      "Pagos con tarjeta, transferencia y más",
+      "Publicaciones con multimedia (fotos, video, audio)",
+      "Categorías especializadas y filtros avanzados",
     ],
+    example: "Carlos publicó su MacBook en 5 minutos con 4 fotos y un video. Recibió 3 ofertas en las primeras 2 horas.",
     gradient: "from-accent/20 to-cherry/10",
   },
   {
     id: 4,
     icon: Shield,
-    title: "Seguridad Garantizada",
-    subtitle: "Tu tranquilidad es nuestra prioridad",
+    title: "Seguridad de Nivel Bancario",
+    subtitle: "Tu tranquilidad es nuestra obsesión",
     description:
-      "ALAMEXA actúa como intermediario confiable con verificación de usuarios, evaluación de productos, detección de fraudes por IA y protección al comprador en cada transacción.",
+      "ALAMEXA actúa como intermediario confiable. Verificamos usuarios, evaluamos productos, detectamos fraudes con IA y protegemos cada transacción.",
     features: [
-      "Verificación de identidad (KYC)",
-      "Sistema de reputación",
-      "Soporte 24/7",
+      "Verificación de identidad (KYC) opcional",
+      "Sistema de reputación con reseñas verificadas",
+      "Detección de fraudes por inteligencia artificial",
     ],
+    example: "El sistema detectó un intento de estafa y bloqueó al usuario malicioso antes de que pudiera hacer daño. Tu dinero siempre protegido.",
     gradient: "from-cherry/10 to-accent/20",
   },
   {
     id: 5,
     icon: Star,
-    title: "Membresías Premium",
-    subtitle: "Lleva tu experiencia al siguiente nivel",
+    title: "Membresías para Cada Necesidad",
+    subtitle: "Elige tu nivel de experiencia",
     description:
-      "Desde el plan Gratis hasta Elite, elige el nivel que mejor se adapte a tus necesidades. Disfruta de publicaciones ilimitadas, menor comisión, perfiles destacados y mucho más.",
+      "Desde el plan Gratis hasta Elite, elige lo que necesitas. Los miembros Premium y Elite disfrutan de beneficios exclusivos, menor comisión y mayor visibilidad.",
     features: [
-      "Free: Acceso básico gratuito",
-      "Premium: Mayor visibilidad y beneficios",
-      "Elite: Experiencia sin límites",
+      "Free: Publicaciones limitadas, funciones básicas",
+      "Premium ($199/mes): Sin límites, menor comisión",
+      "Elite ($499/mes): Prioridad total, soporte VIP",
     ],
+    example: "Los vendedores Premium venden 3x más rápido gracias a su posicionamiento destacado en las búsquedas.",
     gradient: "from-accent/20 to-flag-green/20",
   },
 ];
@@ -229,7 +234,7 @@ export function OnboardingModal({
               </div>
 
               {/* Features */}
-              <div className="space-y-2 mb-6">
+              <div className="space-y-2 mb-4">
                 {step.features.map((feature, index) => (
                   <motion.div
                     key={feature}
@@ -245,6 +250,21 @@ export function OnboardingModal({
                   </motion.div>
                 ))}
               </div>
+
+              {/* Example box */}
+              {step.example && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="p-4 rounded-lg bg-accent/5 border border-accent/20 mb-6"
+                >
+                  <p className="text-xs text-accent font-medium mb-1">💡 Ejemplo real:</p>
+                  <p className="text-sm text-muted-foreground italic">
+                    {step.example}
+                  </p>
+                </motion.div>
+              )}
             </motion.div>
           </AnimatePresence>
 

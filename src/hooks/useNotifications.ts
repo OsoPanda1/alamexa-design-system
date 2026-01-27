@@ -45,8 +45,12 @@ export interface Notification {
   reference_type: string | null;
   read: boolean;
   read_at: string | null;
-  // JSONB en Postgres
-  metadata: NotificationMetadata | null;
+  // New fields from database
+  priority?: string | null;
+  action_url?: string | null;
+  icon?: string | null;
+  // Computed metadata for compatibility
+  metadata?: NotificationMetadata | null;
 }
 
 interface UseNotificationsOptions {
