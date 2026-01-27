@@ -27,6 +27,7 @@ import About from "./pages/About";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import DevHubRegister from "./pages/DevHubRegister";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -130,6 +131,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <DevHubRegister />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/notifications"
+                    element={
+                      <ProtectedRoute>
+                        <Notifications />
                       </ProtectedRoute>
                     }
                   />

@@ -281,9 +281,12 @@ export type Database = {
       }
       notifications: {
         Row: {
+          action_url: string | null
           created_at: string
+          icon: string | null
           id: string
           message: string
+          priority: string | null
           read: boolean
           read_at: string | null
           reference_id: string | null
@@ -293,9 +296,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action_url?: string | null
           created_at?: string
+          icon?: string | null
           id?: string
           message: string
+          priority?: string | null
           read?: boolean
           read_at?: string | null
           reference_id?: string | null
@@ -305,9 +311,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action_url?: string | null
           created_at?: string
+          icon?: string | null
           id?: string
           message?: string
+          priority?: string | null
           read?: boolean
           read_at?: string | null
           reference_id?: string | null
@@ -562,6 +571,77 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          helpful_count: number | null
+          id: string
+          is_seller_review: boolean | null
+          rating: number
+          reviewed_user_id: string
+          reviewer_id: string
+          trade_proposal_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_seller_review?: boolean | null
+          rating: number
+          reviewed_user_id: string
+          reviewer_id: string
+          trade_proposal_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_seller_review?: boolean | null
+          rating?: number
+          reviewed_user_id?: string
+          reviewer_id?: string
+          trade_proposal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_trade_proposal_id_fkey"
+            columns: ["trade_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "trade_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trade_proposals: {
         Row: {
           cash_difference: number | null
@@ -687,9 +767,58 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          created_at: string | null
+          id: string | null
+          membership_tier: Database["public"]["Enums"]["membership_tier"] | null
+          reputation_score: number | null
+          total_trades: number | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          membership_tier?:
+            | Database["public"]["Enums"]["membership_tier"]
+            | null
+          reputation_score?: number | null
+          total_trades?: number | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          membership_tier?:
+            | Database["public"]["Enums"]["membership_tier"]
+            | null
+          reputation_score?: number | null
+          total_trades?: number | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      get_user_rating: {
+        Args: { target_user_id: string }
+        Returns: {
+          average_rating: number
+          total_reviews: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

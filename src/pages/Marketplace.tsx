@@ -38,6 +38,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProducts, PRODUCT_CATEGORIES } from "@/hooks/useProducts";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { PaginationControls } from "@/components/PaginationControls";
+import { SampleProducts } from "@/components/SampleProducts";
+
+const ITEMS_PER_PAGE = 20;
 
 // Componente de producto premium estilo Temu/ML
 function ProductCard({
@@ -302,12 +306,13 @@ function ProductSkeleton({ viewMode }: { viewMode: "grid" | "list" }) {
 
 export default function Marketplace() {
   const { user } = useAuth();
-  const { products, loading } = useProducts();
+  const { products, loading, fetchProducts } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [tradeFilter, setTradeFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("recent");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filtrar y ordenar productos
   const filteredProducts = useMemo(() => {
@@ -361,6 +366,18 @@ export default function Marketplace() {
 
     return filtered;
   }, [products, searchQuery, selectedCategory, tradeFilter, sortBy]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
+
+  // Reset page when filters change
+  const handleFilterChange = () => {
+    setCurrentPage(1);
+  };
 
   // Categorías destacadas con iconos
   const featuredCategories = [
@@ -573,47 +590,59 @@ export default function Marketplace() {
                 <p className="text-muted-foreground mb-6">
                   Intenta ajustar los filtros o buscar algo diferente
                 </p>
+                
+                {/* Sample products component */}
+                <div className="max-w-md mx-auto mb-6">
+                  <SampleProducts onProductsCreated={() => fetchProducts()} />
+                </div>
+                
                 <Button
                   variant="outline"
                   onClick={() => {
                     setSearchQuery("");
                     setSelectedCategory("all");
                     setTradeFilter("all");
+                    handleFilterChange();
                   }}
                 >
                   Limpiar filtros
                 </Button>
               </motion.div>
             ) : (
-              <div
-                className={cn(
-                  viewMode === "grid"
-                    ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-                    : "space-y-4"
-                )}
-              >
-                {filteredProducts.map((product, index) => (
-                  <Link key={product.id} to={`/product/${product.id}`}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <ProductCard product={product} viewMode={viewMode} />
-                    </motion.div>
-                  </Link>
-                ))}
-              </div>
-            )}
+              <>
+                <div
+                  className={cn(
+                    viewMode === "grid"
+                      ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                      : "space-y-4"
+                  )}
+                >
+                  {paginatedProducts.map((product, index) => (
+                    <Link key={product.id} to={`/product/${product.id}`}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <ProductCard product={product} viewMode={viewMode} />
+                      </motion.div>
+                    </Link>
+                  ))}
+                </div>
 
-            {/* Load more */}
-            {filteredProducts.length > 0 && (
-              <div className="mt-12 text-center">
-                <Button variant="outline" size="lg" className="gap-2">
-                  Cargar más productos
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-12">
+                    <PaginationControls
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalItems={filteredProducts.length}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

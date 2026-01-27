@@ -1,13 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Search, ShoppingCart, User, Menu, X, LogOut, Shield, RefreshCw, Bell, MessageSquare } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, LogOut, Shield, RefreshCw, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -108,9 +108,9 @@ export function Header() {
 
             {/* Notifications */}
             {user && (
-              <Button variant="ghost" size="icon" className="text-muted-foreground relative hidden sm:flex">
-                <Bell className="h-5 w-5" />
-              </Button>
+              <div className="hidden sm:flex">
+                <NotificationBell />
+              </div>
             )}
             
             {/* Cart */}
