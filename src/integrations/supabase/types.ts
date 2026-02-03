@@ -162,6 +162,65 @@ export type Database = {
         }
         Relationships: []
       }
+      escrow_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          dispute_reason: string | null
+          id: string
+          payer_id: string
+          payment_method: string | null
+          payment_reference: string | null
+          receiver_id: string
+          refunded_at: string | null
+          released_at: string | null
+          status: string
+          trade_proposal_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          dispute_reason?: string | null
+          id?: string
+          payer_id: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          receiver_id: string
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: string
+          trade_proposal_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          dispute_reason?: string | null
+          id?: string
+          payer_id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          receiver_id?: string
+          refunded_at?: string | null
+          released_at?: string | null
+          status?: string
+          trade_proposal_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_transactions_trade_proposal_id_fkey"
+            columns: ["trade_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "trade_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string
@@ -190,6 +249,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      kyc_verifications: {
+        Row: {
+          address_proof_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          document_back_url: string | null
+          document_front_url: string | null
+          document_number: string | null
+          document_type: string | null
+          expires_at: string | null
+          full_name: string | null
+          id: string
+          nationality: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          selfie_url: string | null
+          updated_at: string
+          user_id: string
+          verification_level: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          address_proof_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_back_url?: string | null
+          document_front_url?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          expires_at?: string | null
+          full_name?: string | null
+          id?: string
+          nationality?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          selfie_url?: string | null
+          updated_at?: string
+          user_id: string
+          verification_level?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          address_proof_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_back_url?: string | null
+          document_front_url?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          expires_at?: string | null
+          full_name?: string | null
+          id?: string
+          nationality?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          selfie_url?: string | null
+          updated_at?: string
+          user_id?: string
+          verification_level?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
       }
       memberships: {
         Row: {
@@ -513,6 +638,8 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_verified: boolean | null
+          kyc_level: string | null
           membership_expires_at: string | null
           membership_tier: Database["public"]["Enums"]["membership_tier"] | null
           phone: string | null
@@ -533,6 +660,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_verified?: boolean | null
+          kyc_level?: string | null
           membership_expires_at?: string | null
           membership_tier?:
             | Database["public"]["Enums"]["membership_tier"]
@@ -555,6 +684,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_verified?: boolean | null
+          kyc_level?: string | null
           membership_expires_at?: string | null
           membership_tier?:
             | Database["public"]["Enums"]["membership_tier"]
@@ -635,6 +766,84 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "reviews_trade_proposal_id_fkey"
+            columns: ["trade_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "trade_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipping_orders: {
+        Row: {
+          actual_delivery: string | null
+          carrier: string
+          created_at: string
+          destination_address: Json | null
+          estimated_delivery: string | null
+          id: string
+          label_url: string | null
+          origin_address: Json | null
+          package_dimensions: Json | null
+          package_weight: number | null
+          product_id: string | null
+          receiver_id: string
+          sender_id: string
+          shipping_cost: number | null
+          status: string
+          tracking_number: string | null
+          trade_proposal_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_delivery?: string | null
+          carrier?: string
+          created_at?: string
+          destination_address?: Json | null
+          estimated_delivery?: string | null
+          id?: string
+          label_url?: string | null
+          origin_address?: Json | null
+          package_dimensions?: Json | null
+          package_weight?: number | null
+          product_id?: string | null
+          receiver_id: string
+          sender_id: string
+          shipping_cost?: number | null
+          status?: string
+          tracking_number?: string | null
+          trade_proposal_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_delivery?: string | null
+          carrier?: string
+          created_at?: string
+          destination_address?: Json | null
+          estimated_delivery?: string | null
+          id?: string
+          label_url?: string | null
+          origin_address?: Json | null
+          package_dimensions?: Json | null
+          package_weight?: number | null
+          product_id?: string | null
+          receiver_id?: string
+          sender_id?: string
+          shipping_cost?: number | null
+          status?: string
+          tracking_number?: string | null
+          trade_proposal_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_orders_trade_proposal_id_fkey"
             columns: ["trade_proposal_id"]
             isOneToOne: false
             referencedRelation: "trade_proposals"
