@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alamexa
+  namespace: alamexa-prod
+  labels:
+    app: alamexa
+    version: v1.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: alamexa
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: alamexa
+        version: v1.0.0
+    spec:
+      containers:
+        - name: alamexa
+          image: ghcr.io/alamexa/alamexa:latest
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: alamexa-config
+            - secretRef:
+                name: alamexa-secrets
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alamexa-svc
+  namespace: alamexa-prod
+spec:
+  type: ClusterIP
+  selector:
+    app: alamexa
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alamexa-ingress
+  namespace: alamexa-prod
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - alamexa.app
+      secretName: alamexa-tls
+  rules:
+    - host: alamexa.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: alamexa-svc
+                port:
+                  number: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alamexa-config
+  namespace: alamexa-prod
+data:
+  NODE_ENV: production
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alamexa-secrets
+  namespace: alamexa-prod
+type: Opaque
+stringData:
+  VITE_SUPABASE_URL: "REPLACE_ME"
+  VITE_SUPABASE_PUBLISHABLE_KEY: "REPLACE_ME"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: alamexa-prod
+  labels:
+    app: alamexa

@@ -221,6 +221,36 @@ export type Database = {
           },
         ]
       }
+      event_outbox: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          origin: string
+          payload: Json
+          published: boolean
+          published_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          origin?: string
+          payload?: Json
+          published?: boolean
+          published_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          origin?: string
+          payload?: Json
+          published?: boolean
+          published_at?: string | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -249,6 +279,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      federation_links: {
+        Row: {
+          global_subject_id: string | null
+          id: string
+          issuer: string
+          linked_at: string
+          local_user_id: string
+          metadata: Json | null
+        }
+        Insert: {
+          global_subject_id?: string | null
+          id?: string
+          issuer?: string
+          linked_at?: string
+          local_user_id: string
+          metadata?: Json | null
+        }
+        Update: {
+          global_subject_id?: string | null
+          id?: string
+          issuer?: string
+          linked_at?: string
+          local_user_id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
       }
       kyc_verifications: {
         Row: {
@@ -637,6 +694,7 @@ export type Database = {
           city: string | null
           created_at: string
           full_name: string | null
+          global_subject_id: string | null
           id: string
           is_verified: boolean | null
           kyc_level: string | null
@@ -659,6 +717,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           full_name?: string | null
+          global_subject_id?: string | null
           id?: string
           is_verified?: boolean | null
           kyc_level?: string | null
@@ -683,6 +742,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           full_name?: string | null
+          global_subject_id?: string | null
           id?: string
           is_verified?: boolean | null
           kyc_level?: string | null
