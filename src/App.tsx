@@ -29,6 +29,7 @@ import Privacy from "./pages/Privacy";
 import DevHubRegister from "./pages/DevHubRegister";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import KYCVerification from "./pages/KYCVerification";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -139,6 +140,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Notifications />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/kyc"
+                    element={
+                      <ProtectedRoute>
+                        <KYCVerification />
                       </ProtectedRoute>
                     }
                   />
