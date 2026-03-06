@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -29,18 +29,18 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    // Validate user via getUser
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
 
-    // GET /federation?action=status - federation status for current user
+    // GET /federation?action=status
     if (req.method === "GET" && action === "status") {
       const { data: link } = await supabase
         .from("federation_links")
@@ -60,13 +60,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // POST /federation?action=anchor - link global identity
+    // POST /federation?action=anchor
     if (req.method === "POST" && action === "anchor") {
       const body = await req.json();
       const globalId = body.global_subject_id;
 
-      if (!globalId) {
-        return new Response(JSON.stringify({ error: "global_subject_id required" }), {
+      if (!globalId || typeof globalId !== "string") {
+        return new Response(JSON.stringify({ error: "global_subject_id required (UUID string)" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -84,7 +84,6 @@ Deno.serve(async (req) => {
 
       if (error) throw error;
 
-      // Also update profile
       await supabase
         .from("profiles")
         .update({ global_subject_id: globalId })
@@ -96,8 +95,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // GET /federation?action=events - pending domain events (admin only)
+    // GET /federation?action=events
     if (req.method === "GET" && action === "events") {
+      // Check admin role
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: "Admin access required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const { data: events, error } = await supabase
         .from("event_outbox")
         .select("*")
@@ -118,6 +132,7 @@ Deno.serve(async (req) => {
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
+    console.error("Federation error:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
