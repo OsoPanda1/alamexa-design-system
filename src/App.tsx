@@ -153,6 +153,15 @@ const App = () => (
                     }
                   />
 
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <AdminPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
