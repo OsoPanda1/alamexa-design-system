@@ -30,6 +30,7 @@ import DevHubRegister from "./pages/DevHubRegister";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 import KYCVerification from "./pages/KYCVerification";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient({
   defaultOptions: {
