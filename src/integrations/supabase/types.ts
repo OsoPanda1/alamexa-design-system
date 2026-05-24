@@ -1042,9 +1042,11 @@ export type Database = {
           bio: string | null
           city: string | null
           created_at: string | null
-          id: string | null
+          is_verified: boolean | null
+          kyc_level: string | null
           membership_tier: Database["public"]["Enums"]["membership_tier"] | null
           reputation_score: number | null
+          state: string | null
           total_trades: number | null
           user_id: string | null
           username: string | null
@@ -1054,11 +1056,13 @@ export type Database = {
           bio?: string | null
           city?: string | null
           created_at?: string | null
-          id?: string | null
+          is_verified?: boolean | null
+          kyc_level?: string | null
           membership_tier?:
             | Database["public"]["Enums"]["membership_tier"]
             | null
           reputation_score?: number | null
+          state?: string | null
           total_trades?: number | null
           user_id?: string | null
           username?: string | null
@@ -1068,11 +1072,13 @@ export type Database = {
           bio?: string | null
           city?: string | null
           created_at?: string | null
-          id?: string | null
+          is_verified?: boolean | null
+          kyc_level?: string | null
           membership_tier?:
             | Database["public"]["Enums"]["membership_tier"]
             | null
           reputation_score?: number | null
+          state?: string | null
           total_trades?: number | null
           user_id?: string | null
           username?: string | null
