@@ -1,0 +1,31 @@
+[package]
+name = "tamv-agent"
+version = "0.1.0"
+edition = "2021"
+authors = ["TAMV ONLINE <ops@tamv.online>"]
+description = "Distributed sovereign agent for the TAMV ring of 206 repos — gossip anti-entropy + HMAC chain token over BLE/Wi-Fi mesh"
+license = "MIT"
+
+[[bin]]
+name = "tamv-agent"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1.40", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+ring = "0.17"
+base64 = "0.22"
+anyhow = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rand = "0.8"
+clap = { version = "4", features = ["derive"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+opt-level = "z"
