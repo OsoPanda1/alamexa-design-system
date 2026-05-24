@@ -93,7 +93,7 @@ export function useBreakpoint(): UseBreakpointReturn {
     updateState();
     
     // Resize throttled
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     const handleResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(updateState, 100);

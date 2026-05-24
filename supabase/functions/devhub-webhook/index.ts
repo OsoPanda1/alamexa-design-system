@@ -24,10 +24,33 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     const body = await req.text();
-    
-    // For simplified webhook handling (without signature verification for now)
-    const event = JSON.parse(body);
+    const signature = req.headers.get("stripe-signature");
+
+    let event: Stripe.Event;
+    if (webhookSecret && signature) {
+      try {
+        event = await stripe.webhooks.constructEventAsync(
+          body,
+          signature,
+          webhookSecret
+        );
+      } catch (err) {
+        console.error("Stripe signature verification failed:", err);
+        return new Response(
+          JSON.stringify({ error: "Invalid signature" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // Reject any unsigned request in production
+      console.error("Missing STRIPE_WEBHOOK_SECRET or stripe-signature header");
+      return new Response(
+        JSON.stringify({ error: "Webhook signature required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
