@@ -1,0 +1,24 @@
+# Per-node TAMV configuration. Copy to `config.toml` and edit
+# `[node]` fields ONLY — the rest is uniform across the 206 repos.
+
+[node]
+id       = 1
+next_id  = 2
+prev_id  = 206
+
+[mesh]
+# "wlan0" | "hci0" | "udp:0.0.0.0:9876"
+interface          = "udp:0.0.0.0:9876"
+gossip_interval_ms = 1500
+# Base64-encoded HMAC-SHA256 key (32 bytes). Distribute out-of-band.
+secret_key         = "REPLACE_WITH_BASE64_32B_KEY"
+# Explicit peers (UDP/dev mode). Real mesh transports discover via L2.
+peers = [
+  "127.0.0.1:9877",
+  "127.0.0.1:9878",
+]
+
+[agent]
+retry_limit      = 5
+chain_timeout_ms = 30000
+ring_size        = 206
